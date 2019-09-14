@@ -13,6 +13,7 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk as gtk
 from gi.repository import Gdk as gdk
 from gi.repository import GObject as gobject
+from gi.repository import GLib as glib
 
 from core.output.handlers.string import StringOutputHandler
 import core.utils
@@ -584,8 +585,8 @@ class DialogTable(Window):
     # Sets a timeout used when auto updating
     def auto_update_search(self, *args):
         if self.search_timeout != 0:
-            gobject.source_remove(self.search_timeout)
-        self.search_timeout = gobject.timeout_add(500, self.reload_search)
+            glib.source_remove(self.search_timeout)
+        self.search_timeout = glib.timeout_add(500, self.reload_search)
 
     #
     # Element selection
