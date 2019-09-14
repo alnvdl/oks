@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #-*- coding:utf-8 -*-
 
 import os
@@ -1003,7 +1003,7 @@ class DialogTable(Window):
 
 if __name__ == '__main__':
     current_path = sys.path[0]
-    db_path = os.path.join(current_path, "db")
+    db_path = os.path.join(current_path, "db.sqlite")
     lock_path = os.path.join(current_path, "lock")
     gladeFile = os.path.join(current_path, "gui/oks.glade")
     styleFile = os.path.join(current_path, "gui/gui.css")
