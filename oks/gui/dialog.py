@@ -26,7 +26,7 @@ class Dialog(Window):
         self.dialog.add_button(buttonText, responseID)
         
     def save_to_content(self, content):
-        for widget, attribute in self.fields.items():
+        for widget, attribute in list(self.fields.items()):
             if attribute:
                 widget = getattr(self, widget)
                 setattr(content, attribute, widget.get_value())
@@ -34,7 +34,7 @@ class Dialog(Window):
     def load_from_content(self, content):
         self.content = content
         if self.fields:
-            for widget, attribute in self.fields.items():
+            for widget, attribute in list(self.fields.items()):
                 if attribute:
                     widget = getattr(self, widget)
                     value = getattr(content, attribute)

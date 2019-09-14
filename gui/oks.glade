@@ -1174,7 +1174,8 @@
     <property name="border_width">5</property>
     <property name="title" translatable="yes">Operação</property>
     <property name="window_position">center-on-parent</property>
-    <property name="default_height">500</property>
+    <property name="default_height">700</property>
+    <property name="default_width">500</property>
     <property name="type_hint">dialog</property>
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox110">
@@ -1922,7 +1923,7 @@ Itens de produção têm características peculiares como volume e fórmula.&lt;
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="xalign">0</property>
-                                <property name="label" translatable="yes">&lt;i&gt;&lt;small&gt;Operações em que itens do inventário são transformados ou trocados por outros itens, quando, por 
+                                <property name="label" translatable="yes">&lt;i&gt;&lt;small&gt;Operações em que itens do inventário são transformados ou trocados por outros itens, quando, por
 exemplo, é necessário acabamento de um item de produção, ou quando um cliente troca um produto.&lt;/small&gt;&lt;/i&gt;</property>
                                 <property name="use_markup">True</property>
                               </object>
@@ -3088,91 +3089,6 @@ exemplo, é necessário acabamento de um item de produção, ou quando um client
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <child>
-          <object class="GtkMenuBar" id="menubar">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <child>
-              <object class="GtkMenuItem" id="menuitem_file">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="use_action_appearance">False</property>
-                <property name="label" translatable="yes">_Oks</property>
-                <property name="use_underline">True</property>
-                <child type="submenu">
-                  <object class="GtkMenu" id="menu1">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <child>
-                      <object class="GtkImageMenuItem" id="imagemenuitem_import">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="related_action">action_import_db</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImageMenuItem" id="imagemenuitem_export">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="related_action">action_export_db</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkSeparatorMenuItem" id="separatormenuitem1">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImageMenuItem" id="imagemenuitem5">
-                        <property name="label">gtk-quit</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="related_action">action_quit</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="GtkMenuItem" id="menuitem_help">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="use_action_appearance">False</property>
-                <property name="label" translatable="yes">_Ajuda</property>
-                <property name="use_underline">True</property>
-                <child type="submenu">
-                  <object class="GtkMenu" id="menu3">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <child>
-                      <object class="GtkImageMenuItem" id="imagemenuitem10">
-                        <property name="label">gtk-about</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="related_action">action_show_about</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-              </object>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
           <object class="GtkToolbar" id="toolbar">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
@@ -3243,9 +3159,7 @@ exemplo, é necessário acabamento de um item de produção, ou quando um client
                 <property name="can_focus">False</property>
                 <property name="related_action">action_view_reports</property>
                 <property name="is_important">True</property>
-                <property name="label" translatable="yes">Relatórios</property>
                 <property name="use_underline">True</property>
-                <property name="stock_id">gtk-file</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -3277,6 +3191,54 @@ exemplo, é necessário acabamento de um item de produção, ou quando um client
                 <property name="homogeneous">True</property>
               </packing>
             </child>
+
+            <child>
+              <object class="GtkSeparatorToolItem" id="toolbar_separator_1">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="draw">False</property>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+
+            <child>
+              <object class="GtkToolButton" id="toolbutton_import_db">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="related_action">action_import_db</property>
+                <property name="is_important">True</property>
+                <property name="label" translatable="yes">Importar</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-open</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+
+            <child>
+              <object class="GtkToolButton" id="toolbutton_export_db">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="related_action">action_export_db</property>
+                <property name="is_important">True</property>
+                <property name="label" translatable="yes">Exportar</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-save</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+
+
+
+
           </object>
           <packing>
             <property name="expand">False</property>
@@ -3285,9 +3247,10 @@ exemplo, é necessário acabamento de um item de produção, ou quando um client
           </packing>
         </child>
         <child>
-          <object class="GtkHPaned" id="hpaned">
+          <object class="GtkPaned" id="hpaned">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
+            <property name="orientation">GTK_ORIENTATION_HORIZONTAL</property>
             <child>
               <placeholder/>
             </child>
@@ -3299,18 +3262,6 @@ exemplo, é necessário acabamento de um item de produção, ou quando um client
             <property name="expand">True</property>
             <property name="fill">True</property>
             <property name="position">2</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkStatusbar" id="statusbar">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="spacing">2</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">3</property>
           </packing>
         </child>
       </object>
@@ -3453,7 +3404,6 @@ exemplo, é necessário acabamento de um item de produção, ou quando um client
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="xalign">0</property>
-                    <property name="justify">fill</property>
                     <property name="wrap">True</property>
                   </object>
                   <packing>
@@ -3536,10 +3486,15 @@ exemplo, é necessário acabamento de um item de produção, ou quando um client
         <property name="can_focus">True</property>
         <property name="hscrollbar_policy">automatic</property>
         <property name="vscrollbar_policy">automatic</property>
+        <property name="shadow_type">etched-in</property>
         <child>
           <object class="GtkTextView" id="textview">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
+            <property name="top-margin">8</property>
+            <property name="bottom-margin">8</property>
+            <property name="right-margin">8</property>
+            <property name="left-margin">8</property>
           </object>
         </child>
       </object>

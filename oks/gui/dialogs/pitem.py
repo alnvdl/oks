@@ -110,7 +110,7 @@ class DialogProductionItem(Dialog):
     def on_button_pitem_calc_volume_clicked(self, button):
         try:
             value = ProductionItem.calculate_volume(self.entry_pitem_name_production.get_value())
-        except oks.DescriptionError, e:
+        except oks.DescriptionError as e:
             self.show_message("Erro ao calcular o volume", e.secondaryText)
         else:
             self.spinbutton_pitem_volume.set_value(value)

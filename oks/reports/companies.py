@@ -95,8 +95,8 @@ class MostImportantCompanies(Report):
             except KeyError:
                 companies[operation.company] = value
                 
-        self.data = companies.items()
-        self.data.sort(key = lambda (company, value): value)
+        self.data = list(companies.items())
+        self.data.sort(key = lambda company_value: company_value[1])
                             
     def make_output(self):
         Report.make_output(self)

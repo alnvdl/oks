@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
 
-import gtk, gtk.glade
+from gi.repository import Gtk as gtk
 
 import core.db
 import oks.gui.fields as Fields
@@ -22,24 +22,24 @@ class Window:
             self.register_field(widget_name, field)
         self.builder.connect_signals(self)
         self.editors = {}
-        
+
     def set_title(self, title):
         self.window.set_title(title)
-        
+
     def register_field(self, widget_name, field):
         setattr(self, widget_name, field)
         self.fields[widget_name] = field.attribute
-            
+
     def get_widget(self, widget_name):
         return self.builder.get_object(widget_name)
-           
+
     def load_widget(self, widget_name):
         return setattr(self, widget_name, self.builder.get_object(widget_name))
-    
+
     def run(self):
         self.window.show_all()
         gtk.main()
-        
+
     def close(self, *args):
         gtk.main_quit()
 
@@ -56,23 +56,23 @@ class Window:
         editor = self.editors[editorClass]
         editor.load_from_content(content)
         response = editor.run()
-        while response == gtk.RESPONSE_OK:
+        while response == gtk.ResponseType.OK:
             try:
                 editor.save_to_content(content)
                 action(content, *args)
-                response = gtk.RESPONSE_NONE # end the loop
-            except oks.OksException, exception:
+                response = gtk.ResponseType.NONE # end the loop
+            except oks.OksException as exception:
                 self.show_message(exception.text, exception.secondaryText)
                 response = editor.run()
-        if response == gtk.RESPONSE_NONE: # if the loop was ended succesfully
-            response = gtk.RESPONSE_OK
+        if response == gtk.ResponseType.NONE: # if the loop was ended succesfully
+            response = gtk.ResponseType.OK
         return response
-        
-    def show_message(self, 
-                     text, 
-                     secondaryText, 
-                     messageType = gtk.MESSAGE_ERROR, 
-                     buttons = gtk.BUTTONS_OK):
+
+    def show_message(self,
+                     text,
+                     secondaryText,
+                     messageType = gtk.MessageType.ERROR,
+                     buttons = gtk.ButtonsType.OK):
         dialogMessage = gtk.MessageDialog(
         self.window,
         0,

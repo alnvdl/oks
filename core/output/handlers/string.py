@@ -6,12 +6,11 @@ from core import utils
 
 # Constants and functions used by the table generator
 TABLE_SPACING = 3
-string_to_unicode = lambda value, encoding: unicode(str(value), encoding)
-    
+
 class OutputHandler:
     def __init__(self):
         pass
-    
+
     def output(self, outputable):
         pass
 
@@ -51,7 +50,7 @@ def table_to_string(table):
 
         sub = []
         max_width = 0
-        
+
         # Copy the full column contents to restore it later
         full_content = column.content
         for content in table.columns[n].content:
@@ -65,17 +64,16 @@ def table_to_string(table):
         column.content = full_content
 
         label = column.label
-        max_width = max(len(label), max_width) 
+        max_width = max(len(label), max_width)
         columns.append((label, max_width))
-  
+
     # Make the columns become rows
     data = [[col[n] for col in data] for n in range(len(data[0]))]
 
     # Writing the columns
     if len(columns) > 1: # Degenerate into a list if there is only one column
         for label, width in columns:
-            string += string_to_unicode(label, table.ENCODING).\
-                      ljust(width + TABLE_SPACING)
+            string += label.ljust(width + TABLE_SPACING)
         string += '\n'
 
     # Writing the rows
@@ -83,11 +81,10 @@ def table_to_string(table):
         formatted_row = ""
         for n in range(len(columns)):
             label, width = columns[n]
-            formatted_row += string_to_unicode(row[n], table.ENCODING).\
-                             ljust(width + TABLE_SPACING)
+            formatted_row += row[n].ljust(width + TABLE_SPACING)
         string += formatted_row + "\n"
 
-    return string.encode(table.ENCODING)
+    return string # .encode(table.ENCODING)
 
 
 def _indent(string, level, ilen=4):
@@ -96,10 +93,10 @@ def _indent(string, level, ilen=4):
     i = 0
     for k in range(level):
         i += ilen/(2**k)
-    i = i * " "
+    i = int(i) * " "
     return i + string.replace("\n", "\n" + i).rstrip(i)
-  
- 
+
+
 class StringOutputHandler(OutputHandler):
     def __init__(self):
         OutputHandler.__init__(self)
@@ -123,7 +120,7 @@ class StringOutputHandler(OutputHandler):
             string += _indent("-- " + outputable.content, level) + "\n"
         elif outputable.__class__ == Table:
             string += _indent(table_to_string(outputable), level)
-        
+
         first = True
         last = None
         if hasattr(outputable, "children"):
@@ -140,6 +137,6 @@ class StringOutputHandler(OutputHandler):
                 string = self._output(child, outputable, level, string)
                 last = child
         return string
-    
+
     def output(self, outputable):
         return self._output(outputable).rstrip("\n")

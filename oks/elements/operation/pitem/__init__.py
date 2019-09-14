@@ -30,7 +30,7 @@ class ProductionItem(OperationElement):
     TYPE = oks.PRODUCTION_ITEM
     HAS_CHILDREN = True
     CHILDREN_TYPE = (oks.RAW_MATERIAL,)
-        
+
     def __init__(self, **kwargs):
         self.name = ""
         self.quantity = 1
@@ -41,48 +41,48 @@ class ProductionItem(OperationElement):
         self.rounding = 1.05
         self.proportion_sum = 0.0
         self.notes = ""
-        
-        self.row = ("name", "quantity", "name_production", 
+
+        self.row = ("name", "quantity", "name_production",
                     "quantity_production","density", "volume", "rounding",
                     "proportion_sum", "notes")
         self._IO = 1
         self.formula = Formula(self)
-        
+
         OperationElement.__init__(self, **kwargs)
         self.children["formula"] = self.formula
-        
+
     def load_child(self, child):
         self.formula.insert(child, core.db.LOAD)
-        
+
     def get_IO(self):
         return self._IO
-          
+
     def set_IO(self, IO):
         self._IO = IO
         self.formula.update_IO()
-        
+
     IO = property(get_IO, set_IO)
-    
+
     def get_mass(self, rounding = True):
         mass = self.volume * self.density
         if rounding:
             mass = mass * self.rounding
         return mass
-        
+
     def get_totalMass(self, rounding = True):
         return self.get_mass(rounding) * self.quantity_production
-        
+
     def get_formula_masses(self):
         masses = []
         for (iter_, component) in self.formula:
-            masses.append([component.name, 
-                           component.proportion, 
+            masses.append([component.name,
+                           component.proportion,
                            component.quantity])
         return masses
-        
+
     def make_output(self):
         item = Section("item", self.name_production)
-       
+
         quantity = FloatData("quantity", "Quantidade", self.quantity_production,
                              strip_zeros=True)
         item.add_child(quantity)
@@ -107,37 +107,37 @@ class ProductionItem(OperationElement):
             mass = mass * MASS_CONVERSION_UNIT
             totalMass += mass
             formula.add_row((component, proportion, mass))
-            
+
 
         formula.add_child(FloatData("total", "Total", totalMass, "g"))
         formula.add_child(Info("infomass",
-                               "Valor das massas com acréscimo de {0}%".format((self.rounding - 1) * 100)))
-        
+                               "Valor das massas com acréscimo de {0:.2f}%".format((self.rounding - 1) * 100)))
+
         finishing = Section("finishing", "Acabamento")
         item.add_child(finishing)
 
         finished_item = StringData("finished_item", "Item", self.name)
         finishing.add_child(finished_item)
 
-        finished_quantity = FloatData("finished_quantity", "Quantidade", 
+        finished_quantity = FloatData("finished_quantity", "Quantidade",
                                       self.quantity, strip_zeros=True)
         finishing.add_child(finished_quantity)
 
         notes = StringData("notes", "Observações", self.notes)
         item.add_child(notes)
-                    
+
         return item
-       
+
     @staticmethod
     def parse_description(description):
         parts = re.search(ITEM_PATTERN, description, re.VERBOSE)
-        
+
         if not description:
             raise oks.DescriptionError("Não foi possível interpretar a "\
                                        "especificação")
         else:
             parts = parts.groups()
-        
+
         description = {}
         try:
             description["type_"] = parts[0]
@@ -152,10 +152,10 @@ class ProductionItem(OperationElement):
             description["grit"] = parts[6]
             description["hardness"] = parts[7]
             description["bond"] = parts[8]
-        except Exception, e:
+        except Exception as e:
             raise oks.DescriptionError("Não foi possível interpretar a "\
                                        "especificação")
-        
+
         return description
 
     @staticmethod
@@ -187,7 +187,7 @@ class ProductionItem(OperationElement):
     @staticmethod
     def calculate_volume(desc):
         desc = ProductionItem.parse_description(desc)
-       
+
         if desc["type_"] not in ("RT", "UL"):
             raise oks.DescriptionError("Só é possível calcular automaticamente o "\
                                        "volume de itens RT e UL.")
@@ -197,8 +197,8 @@ class ProductionItem(OperationElement):
             thickness = str_to_float(desc["thickness"])
             hole = str_to_float(desc["hole"])
             recess_diameter = 0.0
-            recess_thickness = 0.0 
-            if (desc["recess_diameter"] and 
+            recess_thickness = 0.0
+            if (desc["recess_diameter"] and
                 desc["recess_thickness"]):
                 recess_diameter = str_to_float(
                     desc["recess_diameter"])
@@ -213,24 +213,24 @@ class ProductionItem(OperationElement):
         if hole >= diameter:
             raise oks.DescriptionError("O furo não pode ser maior que o "\
                                        "diâmetro.")
-            
+
         # In case there is a recess...
         if recess_diameter != 0.0 and recess_thickness != 0.0:
-            # Recess diameter and thickness shouldn't be bigger than their 
+            # Recess diameter and thickness shouldn't be bigger than their
             # larger counterparts
-            if (recess_diameter > diameter or 
+            if (recess_diameter > diameter or
                 recess_thickness > thickness):
                 raise oks.DescriptionError("O diâmetro ou a espessura do "\
                                            "rebaixo não podem ser maiores que "\
                                            "o diâmetro ou a espessura da peça.")
 
 
-        volume = ((math.pi * ((diameter / 2) ** 2) * thickness) - 
+        volume = ((math.pi * ((diameter / 2) ** 2) * thickness) -
                   (math.pi * ((hole / 2) ** 2) * thickness))
         recess_volume = 0.0
         if recess_diameter and recess_thickness:
-            recess_volume = (math.pi * ((recess_diameter / 2) ** 2) * 
+            recess_volume = (math.pi * ((recess_diameter / 2) ** 2) *
                              recess_thickness)
             recess_volume -= (math.pi * ((hole / 2) ** 2) * recess_thickness)
         # Converting to cubic centimeters
-        return ((volume - recess_volume) / 1000) 
+        return ((volume - recess_volume) / 1000)

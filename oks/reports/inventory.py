@@ -74,7 +74,7 @@ class MostImportantItems(Report):
     
     def get_items_list(self, element, use):
         if element.HAS_CHILDREN:
-            for container in element.children.values():
+            for container in list(element.children.values()):
                 for (iter_, element) in container:
                     if hasattr(element, "quantity"):
                         try:
@@ -99,15 +99,15 @@ class MostImportantItems(Report):
         use = {}
         for operation in operations:
             tmp = self.get_items_list(operation, {})
-            for (item, quantity) in tmp.items():
+            for (item, quantity) in list(tmp.items()):
                 if regex.search(item) is not None:
                     try:
                         use[item] += quantity
                     except KeyError:
                         use[item] = quantity
                 
-        self.data = use.items()
-        self.data.sort(key = lambda (item, quantity): quantity)
+        self.data = list(use.items())
+        self.data.sort(key = lambda item_quantity: item_quantity[1])
 
     def make_output(self):
         Report.make_output(self)

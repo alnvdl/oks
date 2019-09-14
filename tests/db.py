@@ -64,7 +64,7 @@ class CompaniesTest(OksTestCase):
         self.db.save(company)
         
         operation = self.db.load(oks.OPERATION, row_id = operation_row_id)
-        self.assertEquals(operation.company, COMPANY_2)
+        self.assertEqual(operation.company, COMPANY_2)
 
 class InventoryTest(OksTestCase):    
     def testeBlankItemName(self):
@@ -108,10 +108,10 @@ class InventoryTest(OksTestCase):
                
         operation = self.db.load(oks.OPERATION, row_id = operation_row_id)
         
-        self.assertEquals(operation.output[0][0].name, ITEM_2)
-        self.assertEquals(operation.output[1][0].name, ITEM_2)
-        self.assertEquals(operation.output[1][0].formula[0][0].name, ITEM_2)
-        self.assertEquals(operation.output[2][0].name, ITEM_2)
+        self.assertEqual(operation.output[0][0].name, ITEM_2)
+        self.assertEqual(operation.output[1][0].name, ITEM_2)
+        self.assertEqual(operation.output[1][0].formula[0][0].name, ITEM_2)
+        self.assertEqual(operation.output[2][0].name, ITEM_2)
                  
 class OperationsTest(OksTestCase):
     def testInvalidCompanyOnInsert(self):
@@ -225,13 +225,13 @@ class OperationsTest(OksTestCase):
         
         self.db.toggle_status(oks.OPERATION, operation_row_id)
         
-        self.assertEquals(self.db.load(oks.ITEM, row_id = item_row_id).quantity, 7.0)
-        self.assertEquals(self.db.load(oks.ITEM, row_id = item2_row_id).quantity, 127.0)
+        self.assertEqual(self.db.load(oks.ITEM, row_id = item_row_id).quantity, 7.0)
+        self.assertEqual(self.db.load(oks.ITEM, row_id = item2_row_id).quantity, 127.0)
         
         self.db.toggle_status(oks.OPERATION, operation_row_id)
         
-        self.assertEquals(self.db.load(oks.ITEM, row_id = item_row_id).quantity, 10.0)
-        self.assertEquals(self.db.load(oks.ITEM, row_id = item2_row_id).quantity, 100.0)
+        self.assertEqual(self.db.load(oks.ITEM, row_id = item_row_id).quantity, 10.0)
+        self.assertEqual(self.db.load(oks.ITEM, row_id = item2_row_id).quantity, 100.0)
                 
     def testProductionOperationStatusChange(self):
         """ A production operation should have its items added from the 
@@ -267,15 +267,15 @@ class OperationsTest(OksTestCase):
         
         production_item = self.db.load(oks.ITEM, row_id = production_item_row_id)
         raw_material = self.db.load(oks.ITEM, row_id = raw_material_row_id)
-        self.assertEquals(production_item.quantity, 13.0)
-        self.assertEquals(raw_material.quantity, 88.797956316250989)
+        self.assertEqual(production_item.quantity, 13.0)
+        self.assertEqual(raw_material.quantity, 88.797956316250989)
                 
         self.db.toggle_status(oks.OPERATION, operation_row_id)
         
         production_item = self.db.load(oks.ITEM, row_id = production_item_row_id)
         raw_material = self.db.load(oks.ITEM, row_id = raw_material_row_id)
-        self.assertEquals(production_item.quantity, 3.0)
-        self.assertEquals(raw_material.quantity, 100.0)
+        self.assertEqual(production_item.quantity, 3.0)
+        self.assertEqual(raw_material.quantity, 100.0)
         
     def testProductionItemUpdate(self):
         """ A production item formula components should be taken from the 
@@ -318,18 +318,18 @@ class OperationsTest(OksTestCase):
         production_item = self.db.load(oks.ITEM, row_id = production_item_row_id)
         raw_material = self.db.load(oks.ITEM, row_id = raw_material_row_id)
         raw_material2 = self.db.load(oks.ITEM, row_id = raw_material2_row_id)
-        self.assertEquals(production_item.quantity, 13.0)
-        self.assertEquals(raw_material.quantity, 90.398248271072276)
-        self.assertEquals(raw_material2.quantity, 128.3997080451787)
+        self.assertEqual(production_item.quantity, 13.0)
+        self.assertEqual(raw_material.quantity, 90.398248271072276)
+        self.assertEqual(raw_material2.quantity, 128.3997080451787)
             
         self.db.toggle_status(oks.OPERATION, operation_row_id)
 
         production_item = self.db.load(oks.ITEM, row_id = production_item_row_id)
         raw_material = self.db.load(oks.ITEM, row_id = raw_material_row_id)
         raw_material2 = self.db.load(oks.ITEM, row_id = raw_material2_row_id)
-        self.assertEquals(production_item.quantity, 3.0)
-        self.assertEquals(raw_material.quantity, 100.0)
-        self.assertEquals(raw_material2.quantity, 130.0)
+        self.assertEqual(production_item.quantity, 3.0)
+        self.assertEqual(raw_material.quantity, 100.0)
+        self.assertEqual(raw_material2.quantity, 130.0)
         
         operation = self.db.load(oks.OPERATION, row_id = operation_row_id)
         production_itemRowIter = operation.input.get_iter_first()
@@ -345,9 +345,9 @@ class OperationsTest(OksTestCase):
         production_item = self.db.load(oks.ITEM, row_id = production_item_row_id)
         raw_material = self.db.load(oks.ITEM, row_id = raw_material_row_id)
         raw_material2 = self.db.load(oks.ITEM, row_id = raw_material2_row_id)
-        self.assertEquals(production_item.quantity, 13.0)
-        self.assertEquals(raw_material.quantity, 100.0)
-        self.assertEquals(raw_material2.quantity, 118.79795631625099)        
+        self.assertEqual(production_item.quantity, 13.0)
+        self.assertEqual(raw_material.quantity, 100.0)
+        self.assertEqual(raw_material2.quantity, 118.79795631625099)        
         
     def testInvalidItemCannotBeSaved(self):
         """ An item that doesn't exist should raise an exception when trying to 
