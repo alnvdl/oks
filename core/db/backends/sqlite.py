@@ -186,8 +186,8 @@ class SQLiteBackend:
         self.deleted = []
         
     def close(self):
-        self.cursor.execute("VACUUM")
         self.commit()
         self.cursor.close()
+        self.connection.execute("VACUUM")
         self.connection.close()
         
