@@ -90,19 +90,9 @@ class ButtonMenu(gtk.ToggleButton):
             self.menu.popup(None, None, self.get_menu_position, None, 0, 0)
 
     def get_menu_position(self, menu, x, y, data):
-        # Get the button position by translating it from the window position
         button_x, button_y = self.translate_coordinates(self.parent_window,
                                                         0, 0)
-
-        # Get the windows coordinates
-        window_x, window_y = self.parent_window.window.get_origin()
-
-        # Add the coordinates and the button height
-        x = window_x + button_x
-        y = window_y + button_y
-        y += self.get_allocation().height
-
-        return (x, y, True)
+        return (button_x, button_y + self.get_allocated_height(), True)
 
 
 class ActionsMenu(gtk.Menu):

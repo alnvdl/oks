@@ -40,7 +40,7 @@ class PrintAction:
         font = pango.FontDescription("%s %i" % (self.font_name,
                                                 self.font_size))
         self.layout.set_font_description(font)
-        self.layout.set_text(self.content, len(self.content))
+        self.layout.set_text(self.content, -1)
 
         # And then enable wrap or dynamic resizing if needed...
         if self.wrap:
