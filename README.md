@@ -17,13 +17,13 @@ It was originally built using Python 2, PyGTK and SQLite, and has since been
 updated to Python 3 and the new GTK/GI bindings.
 
 It was mostly developed in 2008, when I (Allan) was 18 years old, before I
-started attending university. I am proud of some parts of this project, namely
-the database model, the abstractions I came up with and the *relative* tidiness
-of the code.
+started attending university. It was my first real big project. I am proud of
+some parts of it, namely the database model, the abstractions I came up with
+and the *relative* tidiness of the code in certain parts.
 
 I'm a little ashamed by the lack of proper testing (there are only some
 integration tests) and some really questionable decisions, like having a
-gigantic application singleton. But this thing still works after all these
+gigantic singleton for the GUI. But this thing still works after all these
 years and is still used everyday as of 2023 :)
 
 The user interface only supports Portuguese (despite all of the code being in

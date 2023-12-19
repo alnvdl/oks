@@ -459,7 +459,7 @@ class DialogTable(Window):
         # If we are in report mode, just set it and ignore the table setting
         if self.mode == oks.MODE_REPORT:
             # Clear the previous report description and options
-            self.label_report_description.set_text("")
+            self.label_report_description.set_label("")
             self.clear_report_actions()
 
             self.window.set_title("Relatórios")
@@ -983,7 +983,9 @@ class DialogTable(Window):
         self.title.set_label(report.NAME)
 
         # Description
-        self.label_report_description.set_text(report.DESCRIPTION)
+        self.label_report_description.set_label(
+            f"<i><small>{report.DESCRIPTION}</small></i>"
+        )
 
         # Options
         self.clear_report_actions()

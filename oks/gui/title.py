@@ -6,11 +6,10 @@ from gi.repository import Pango as pango
 class Title(gtk.EventBox):
     def __init__(self, parent_window, actions_label):
         gtk.EventBox.__init__(self)
-        self.set_name("oks-title")
         self.label = gtk.Label()
         self.button_actions = ButtonMenu(parent_window, actions_label)
-        self.button_actions.set_name("button_actions")
 
+        self.label.set_name("label-element-name")
         self.label.set_ellipsize(pango.ELLIPSIZE_END)
         self.label.set_alignment(0.0, 0.5)
         self.label.set_padding(2, 0)
