@@ -1,18 +1,13 @@
-#!/usr/bin/env python
-#-*- coding:utf-8 -*-
-
-import gi
-gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk as gtk
-
-# from gi.repository import Gtk as gtk
 
 import core.db
 
+
 class InternalModel(gtk.ListStore):
-    """ A InternalModel holds a set of objects that are created based on row in
-    the SQLite model. These objects represent an Operation. """
-    def __init__(self, IO = 0):
+    """A InternalModel holds a set of objects that are created based on row in
+    the SQLite model. These objects represent an Operation."""
+
+    def __init__(self, IO=0):
         gtk.ListStore.__init__(self, object)
         self.IO = IO
         self.inserted = []
@@ -46,9 +41,11 @@ class InternalModel(gtk.ListStore):
     def delete(self, iter_):
         rowObject = self.get_object(iter_)
         # FIXME: why is it removing from self.inserted so many times?
-        if rowObject in self.inserted: # If the element was inserted but it wasn't in the database
+        if (
+            rowObject in self.inserted
+        ):  # If the element was inserted but it wasn't in the database
             self.inserted.remove(rowObject)
-        else: # If the element was already registered in the database
+        else:  # If the element was already registered in the database
             self.deleted.append(rowObject)
         # If it was inserted or updated, remove it from there
         while rowObject in self.inserted:
@@ -69,8 +66,8 @@ class InternalModel(gtk.ListStore):
 
 
 class FilteredInternalModel:
-    """ A wrapper for the InternalModel that adapts the attributes of the
-    objects as columns for a TreeView """
+    """A wrapper for the InternalModel that adapts the attributes of the
+    objects as columns for a TreeView"""
 
     def __init__(self, baseModel, *columns):
         self.baseModel = baseModel
@@ -95,7 +92,9 @@ class FilteredInternalModel:
         return self.baseModel.insert(rowObject)
 
     def update(self, newRowObject, filteredRowIter):
-        return self.baseModel.update(newRowObject, self.get_base_iter_(filteredRowIter))
+        return self.baseModel.update(
+            newRowObject, self.get_base_iter_(filteredRowIter)
+        )
 
     def delete(self, filteredRowIter):
         return self.baseModel.delete(self.get_base_iter_(filteredRowIter))

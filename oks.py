@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-#-*- coding:utf-8 -*-
 
 import os
 import sys
@@ -9,6 +8,10 @@ import re
 import locale
 
 import gi
+from gi import pygtkcompat
+
+pygtkcompat.enable()
+pygtkcompat.enable_gtk(version="3.0")
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk as gtk
 from gi.repository import Gdk as gdk
@@ -20,16 +23,17 @@ import core.utils
 from core.output.handlers.view import ViewOutputHandler
 import oks
 from oks.db.manager import DatabaseManager
-from oks.db.app import (TABLE_COMPANIES, TABLE_INVENTORY, TABLE_OPERATIONS,
-                        TABLE_TRANSACTIONS_VIEW, TABLE_TO_TYPE)
+from oks.db.app import (
+    TABLE_COMPANIES,
+    TABLE_INVENTORY,
+    TABLE_OPERATIONS,
+    TABLE_TRANSACTIONS_VIEW,
+    TABLE_TO_TYPE,
+)
 from oks.elements.company import Company
 from oks.elements.item import Item
 from oks.elements.operation import Operation
-from oks.elements.operation.product import Product
-from oks.elements.operation.pitem import ProductionItem
-from oks.elements.operation.pitem.rawmaterial import RawMaterial
 from oks.elements.operation.eitem import ExchangeItem
-from oks.elements.operation.transaction import Transaction
 from oks.reports import companies, inventory, operations, transactions
 from oks.gui.window import Window
 from oks.gui.dialogs.company import DialogCompany
@@ -43,6 +47,7 @@ from oks.gui.title import Title
 from oks.gui.printaction import PrintAction
 from oks.gui.searchbox import SearchBox
 
+
 class DialogTable(Window):
     AUTO_UPDATE_SEARCH = True
     SORT = True
@@ -55,9 +60,10 @@ class DialogTable(Window):
 
         screen = gdk.Screen.get_default()
         gtk_provider = gtk.CssProvider()
-        gtk_context= gtk.StyleContext()
-        gtk_context.add_provider_for_screen(screen, gtk_provider, \
-            gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+        gtk_context = gtk.StyleContext()
+        gtk_context.add_provider_for_screen(
+            screen, gtk_provider, gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        )
         stylesheet = open(styleFile, "rb")
         gtk_provider.load_from_data(stylesheet.read())
         stylesheet.close()
@@ -67,8 +73,10 @@ class DialogTable(Window):
         self.window.maximize()
         # After we maximize, hpaned resizes. By listening to this event, we can
         # revert that. Hacky, but it works...
-        self.window.connect("leave-notify-event", \
-            lambda *args: self.hpaned.set_position(self.PANED_POSITION))
+        self.window.connect(
+            "leave-notify-event",
+            lambda *args: self.hpaned.set_position(self.PANED_POSITION),
+        )
 
         # Loading some required widgets
         self.load_widget("hpaned")
@@ -103,12 +111,15 @@ class DialogTable(Window):
         self.hpaned.pack2(self.vbox_right, True, False)
 
         # Report selection area
-        self.combobox_report_type = ComboBoxField(self.combobox_report_type,
-                                                  None,
-                                                  gobject.TYPE_STRING,
-                                                  gobject.TYPE_PYOBJECT)
-        self.combobox_report_type.connect("new-value",
-                                          self.on_report_type_selected)
+        self.combobox_report_type = ComboBoxField(
+            self.combobox_report_type,
+            None,
+            gobject.TYPE_STRING,
+            gobject.TYPE_PYOBJECT,
+        )
+        self.combobox_report_type.connect(
+            "new-value", self.on_report_type_selected
+        )
 
         # Setting the view area
         self.textview = TextViewField(self.get_widget("textview"))
@@ -142,36 +153,29 @@ class DialogTable(Window):
         entryCity = EntryField(gtk.Entry(), "city")
 
         self.tables[TABLE_COMPANIES] = {
-        "window_title": "Empresas",
-
-        "columns": [
-        (TextColumn, "Nome", 1, self.SORT, True),
-        (TypeColumn, "Tipo", 2, oks.COMPANY_TYPES_DESC, self.SORT),
-        (TextColumn, "Telefone", 9, self.SORT, True)],
-
-        "default_sort": (1, gtk.SORT_ASCENDING),
-
-        "search_widgets": [
-        ("Nome: ", entryName),
-        ("Cidade: ", entryCity)],
-
-        "actions": [
-        ("_Editar", self.edit),
-        ("_Remover", self.remove),
-        ("_Imprimir", self.print_action),
-        ("Imprimir e_tiqueta de correio", self.print_label)],
-
-        "new_stock": "Nova empresa",
-
-        "completion": [(entryCity, "companies:city")],
-
-        "reports": [companies.FullCompaniesReport,
-                    companies.CompactCompaniesReport,
-                    companies.MostImportantCompanies],
-
-        "main_state": (False, None, None),
-
-        "report_state": (None, None),
+            "window_title": "Empresas",
+            "columns": [
+                (TextColumn, "Nome", 1, self.SORT, True),
+                (TypeColumn, "Tipo", 2, oks.COMPANY_TYPES_DESC, self.SORT),
+                (TextColumn, "Telefone", 9, self.SORT, True),
+            ],
+            "default_sort": (1, gtk.SORT_ASCENDING),
+            "search_widgets": [("Nome: ", entryName), ("Cidade: ", entryCity)],
+            "actions": [
+                ("_Editar", self.edit),
+                ("_Remover", self.remove),
+                ("_Imprimir", self.print_action),
+                ("Imprimir e_tiqueta de correio", self.print_label),
+            ],
+            "new_stock": "Nova empresa",
+            "completion": [(entryCity, "companies:city")],
+            "reports": [
+                companies.FullCompaniesReport,
+                companies.CompactCompaniesReport,
+                companies.MostImportantCompanies,
+            ],
+            "main_state": (False, None, None),
+            "report_state": (None, None),
         }
 
         #
@@ -185,30 +189,26 @@ class DialogTable(Window):
         entry_item = EntryField(gtk.Entry(), "name")
 
         self.tables[TABLE_INVENTORY] = {
-        "window_title": "Inventário",
-
-        "columns": [
-        (TextColumn, "Item", 1, self.SORT, True),
-        (TypeColumn, "Tipo", 2, oks.ITEM_TYPES_DESC, self.SORT),
-        (FloatColumn, "Quantidade", 4, self.SORT),
-        (CurrencyColumn, "Valor (R$)", 5, self.SORT)],
-
-        "default_sort": (1, gtk.SORT_ASCENDING),
-
-        "search_widgets": [ ("Item: ", entry_item),
-                            ("Tipo: ", combobox_type) ],
-
-        "actions": [("_Editar", self.edit),
-                    ("_Remover", self.remove)],
-
-        "new_stock": "Novo item",
-
-        "reports": [inventory.InventoryReport,
-                    inventory.MostImportantItems],
-
-        "main_state": (False, None, None),
-
-        "report_state": (None, None),
+            "window_title": "Inventário",
+            "columns": [
+                (TextColumn, "Item", 1, self.SORT, True),
+                (TypeColumn, "Tipo", 2, oks.ITEM_TYPES_DESC, self.SORT),
+                (FloatColumn, "Quantidade", 4, self.SORT),
+                (CurrencyColumn, "Valor (R$)", 5, self.SORT),
+            ],
+            "default_sort": (1, gtk.SORT_ASCENDING),
+            "search_widgets": [
+                ("Item: ", entry_item),
+                ("Tipo: ", combobox_type),
+            ],
+            "actions": [("_Editar", self.edit), ("_Remover", self.remove)],
+            "new_stock": "Novo item",
+            "reports": [
+                inventory.InventoryReport,
+                inventory.MostImportantItems,
+            ],
+            "main_state": (False, None, None),
+            "report_state": (None, None),
         }
 
         #
@@ -225,46 +225,49 @@ class DialogTable(Window):
         entry_date.set_value(None)
 
         self.tables[TABLE_OPERATIONS] = {
-        "window_title": "Operações",
-
-        "columns": [
-        (DateColumn, "Data", 4, self.SORT),
-        (TypeColumn, "Tipo", 1, oks.OPERATION_TYPES_DESC, self.SORT),
-        (TextColumn, "Empresa", 2, self.SORT, True),
-        (IntegerColumn, "ID", 3, self.SORT),
-        (CheckButtonColumn, "Status", 6, self.on_operation_status_change)],
-
-        "default_sort": (4, gtk.SORT_DESCENDING),
-
-        "search_widgets": [ ("Empresa: ", entryCompany),
-                            ("Item: ", entry_item),
-                            ("Período: ", entry_date),
-                            ("Tipo: ", combobox_type) ],
-
-        "actions": [
-        ("_Editar", self.edit),
-        ("_Remover", self.remove),
-        ("_Imprimir", self.print_action),
-        ("Dar _acabamento", self.finishing),
-        ("_Copiar operação", self.copy_operation),
-        ("Re_solver requisitos", self.resolve_reqs)],
-
-        "new_stock": "Nova operação",
-
-        "completion": [(entryCompany, "companies:name"),
-                       (entry_item, "inventory:item")],
-
-        "reports": [operations.OutgoingOperationsReport,
-                    operations.IncomingOperationsReport,
-                    operations.ProductionOperationsReport,
-                    operations.ProductionCostReport,
-                    operations.ProductionSalesReport],
-
-        "main_state": (False, None, None),
-
-        "report_state": (None, None),
+            "window_title": "Operações",
+            "columns": [
+                (DateColumn, "Data", 4, self.SORT),
+                (TypeColumn, "Tipo", 1, oks.OPERATION_TYPES_DESC, self.SORT),
+                (TextColumn, "Empresa", 2, self.SORT, True),
+                (IntegerColumn, "ID", 3, self.SORT),
+                (
+                    CheckButtonColumn,
+                    "Status",
+                    6,
+                    self.on_operation_status_change,
+                ),
+            ],
+            "default_sort": (4, gtk.SORT_DESCENDING),
+            "search_widgets": [
+                ("Empresa: ", entryCompany),
+                ("Item: ", entry_item),
+                ("Período: ", entry_date),
+                ("Tipo: ", combobox_type),
+            ],
+            "actions": [
+                ("_Editar", self.edit),
+                ("_Remover", self.remove),
+                ("_Imprimir", self.print_action),
+                ("Dar _acabamento", self.finishing),
+                ("_Copiar operação", self.copy_operation),
+                ("Re_solver requisitos", self.resolve_reqs),
+            ],
+            "new_stock": "Nova operação",
+            "completion": [
+                (entryCompany, "companies:name"),
+                (entry_item, "inventory:item"),
+            ],
+            "reports": [
+                operations.OutgoingOperationsReport,
+                operations.IncomingOperationsReport,
+                operations.ProductionOperationsReport,
+                operations.ProductionCostReport,
+                operations.ProductionSalesReport,
+            ],
+            "main_state": (False, None, None),
+            "report_state": (None, None),
         }
-
 
         #
         # Transactions
@@ -285,35 +288,43 @@ class DialogTable(Window):
         entry_date.set_value(None)
 
         self.tables[TABLE_TRANSACTIONS_VIEW] = {
-        "window_title": "Transações",
-
-        "columns": [(DateColumn, "Data", 2, self.SORT),
-                    (TypeColumn, "Tipo", 1, oks.TRANSACTION_TYPES_DESC,
-                        self.SORT, True),
-                    (TextColumn, "Empresa", 3, self.SORT, True),
-                    (IntegerColumn, "ID", 4, self.SORT),
-                    (CurrencyColumn, "Valor (R$)", 6, self.SORT),
-                    (CheckButtonColumn, "Status", 7, self.on_transactionStatusChanged)],
-
-        "default_sort": (2, gtk.SORT_DESCENDING),
-
-        "search_widgets": [ ("Empresa: ", entryCompany),
-                            ("Período: ", entry_date),
-                            ("Status: ", comboboxStatus),
-                            ("Tipo: ", combobox_type) ],
-
-        "actions": [],
-
-        "new_stock": None,
-
-        "completion": [(entryCompany, "companies:name")],
-
-        "reports":  [transactions.PayablesReport,
-                     transactions.ReceivablesReport],
-
-        "main_state": (False, None, None),
-
-        "report_state": (None, None),
+            "window_title": "Transações",
+            "columns": [
+                (DateColumn, "Data", 2, self.SORT),
+                (
+                    TypeColumn,
+                    "Tipo",
+                    1,
+                    oks.TRANSACTION_TYPES_DESC,
+                    self.SORT,
+                    True,
+                ),
+                (TextColumn, "Empresa", 3, self.SORT, True),
+                (IntegerColumn, "ID", 4, self.SORT),
+                (CurrencyColumn, "Valor (R$)", 6, self.SORT),
+                (
+                    CheckButtonColumn,
+                    "Status",
+                    7,
+                    self.on_transactionStatusChanged,
+                ),
+            ],
+            "default_sort": (2, gtk.SORT_DESCENDING),
+            "search_widgets": [
+                ("Empresa: ", entryCompany),
+                ("Período: ", entry_date),
+                ("Status: ", comboboxStatus),
+                ("Tipo: ", combobox_type),
+            ],
+            "actions": [],
+            "new_stock": None,
+            "completion": [(entryCompany, "companies:name")],
+            "reports": [
+                transactions.PayablesReport,
+                transactions.ReceivablesReport,
+            ],
+            "main_state": (False, None, None),
+            "report_state": (None, None),
         }
 
         # Load the database
@@ -336,12 +347,14 @@ class DialogTable(Window):
         self.set_mode(oks.MODE_MAIN)
 
     def on_action_import_db_activate(self, action):
-        response = self.show_message("Importar base de dados?",
-                                     "Importar uma base de dados vai "\
-                                     "sobrescrever a base de dados atual. "\
-                                     "Deseja prosseguir?",
-                                     gtk.MessageType.QUESTION,
-                                     gtk.ButtonsType.YES_NO)
+        response = self.show_message(
+            "Importar base de dados?",
+            "Importar uma base de dados vai "
+            "sobrescrever a base de dados atual. "
+            "Deseja prosseguir?",
+            gtk.MessageType.QUESTION,
+            gtk.ButtonsType.YES_NO,
+        )
         if response != gtk.ResponseType.YES:
             return
 
@@ -383,13 +396,17 @@ class DialogTable(Window):
             self.toolbar.remove(self.toolbar_separator)
             self.toolbar.insert(self.toolbar_separator, 5)
             self.toolbutton_add.show()
-            self.toolbutton_switch_mode.set_related_action(self.action_view_reports)
+            self.toolbutton_switch_mode.set_property(
+                "related_action", self.action_view_reports
+            )
             left = self.vbox_left_main
         elif mode == oks.MODE_REPORT:
             self.toolbar.remove(self.toolbar_separator)
             self.toolbar.insert(self.toolbar_separator, 4)
             self.toolbutton_add.hide()
-            self.toolbutton_switch_mode.set_related_action(self.action_view_main)
+            self.toolbutton_switch_mode.set_related_action(
+                self.action_view_main
+            )
             left = self.vbox_left_reports
 
         if self.current_left is not None:
@@ -402,8 +419,9 @@ class DialogTable(Window):
 
         self.mode = mode
         self.load_table(TABLE_OPERATIONS, True)
-        self.get_widget("radioaction_show_operations").activate()
-
+        self.get_widget("radioaction_show_operations").set_property(
+            "active", True
+        )
 
     def on_action_mode_activate(self, action):
         if self.mode == oks.MODE_MAIN:
@@ -464,7 +482,7 @@ class DialogTable(Window):
 
         # Search
         self.search_box.reset()
-        for (label, searchWidget) in self.tables[table]["search_widgets"]:
+        for label, searchWidget in self.tables[table]["search_widgets"]:
             self.search_box.add_field(label, searchWidget)
 
         # Actions
@@ -479,7 +497,7 @@ class DialogTable(Window):
             self.f_model.set_visible_func(self.visible_func)
             self.sf_model = None
             if self.SORT:
-                self.sf_model = gtk.TreeModelSort(self.f_model)
+                self.sf_model = gtk.TreeModelSort(model=self.f_model)
                 sort_col, sort_type = self.tables[table]["default_sort"]
                 if sort_col is not None and sort_type is not None:
                     self.sf_model.set_sort_column_id(sort_col, sort_type)
@@ -505,18 +523,17 @@ class DialogTable(Window):
 
         action_new_label = self.tables[table]["new_stock"]
         if action_new_label:
-            self.action_new.set_sensitive(True)
+            self.action_new.set_property("sensitive", True)
             self.action_new.set_property("label", action_new_label)
             self.action_new.set_property("short_label", action_new_label)
         else:
-            self.action_new.set_sensitive(False)
+            self.action_new.set_property("sensitive", False)
 
         # Completion support
         completion = self.services["completion"]
         if "completion" in self.tables[table]:
             for entry, completion_name in self.tables[table]["completion"]:
                 entry.set_completion(completion(completion_name))
-
 
         # Restore the previous state
         initialized, element, scroll = self.tables[self.table]["main_state"]
@@ -528,21 +545,25 @@ class DialogTable(Window):
 
         if scroll is not None:
             # Add a timeout to prevent flickering
-            cb = lambda: self.treeview.scroll_to_point(scroll.x, scroll.y);\
-                         False
-            gobject.timeout_add(250, cb)
+            def cb():
+                self.treeview.scroll_to_point(scroll.x, scroll.y)
+                return False
+
+            glib.timeout_add(250, cb)
 
         self.search_box.grab_focus()
-        self.f_model.refilter() # Refilter, so that the sorting works fine
+        self.f_model.refilter()  # Refilter, so that the sorting works fine
         self.hpaned.set_position(self.PANED_POSITION)
 
     def on_radioaction_show_changed(self, widget, current):
-        tables = [TABLE_COMPANIES,
-                  TABLE_INVENTORY,
-                  TABLE_OPERATIONS,
-                  TABLE_TRANSACTIONS_VIEW]
+        tables = [
+            TABLE_COMPANIES,
+            TABLE_INVENTORY,
+            TABLE_OPERATIONS,
+            TABLE_TRANSACTIONS_VIEW,
+        ]
 
-        table = tables[current.get_current_value()]
+        table = tables[current.get_property("current-value")]
         self.load_table(table)
 
     def clear_report_actions(self):
@@ -551,10 +572,11 @@ class DialogTable(Window):
 
     def reload_search(self, refilter=True):
         query_functions = {
-        TABLE_COMPANIES: self.db.query_companies,
-        TABLE_INVENTORY: self.db.query_inventory,
-        TABLE_OPERATIONS: self.db.query_operations,
-        TABLE_TRANSACTIONS_VIEW: self.db.query_transactions}
+            TABLE_COMPANIES: self.db.query_companies,
+            TABLE_INVENTORY: self.db.query_inventory,
+            TABLE_OPERATIONS: self.db.query_operations,
+            TABLE_TRANSACTIONS_VIEW: self.db.query_transactions,
+        }
 
         results = query_functions[self.table](self.search_box.get_search())
         results = tuple([row_id for (row_id,) in results])
@@ -611,17 +633,19 @@ class DialogTable(Window):
         if self.selected:
             return True
         else:
-            self.show_message("Nenhum elemento selecionado",
-                              "É preciso selecionar um elemento da tabela"\
-                              "para efetuar esta ação.")
+            self.show_message(
+                "Nenhum elemento selecionado",
+                "É preciso selecionar um elemento da tabela"
+                "para efetuar esta ação.",
+            )
             return False
 
     # Load an element when it is selected
-    def on_treeview_cursor_changed(self, widget = None):
+    def on_treeview_cursor_changed(self, widget=None):
         row_id = self.get_selected_row_id()
         if row_id is None:
             return
-        element = self.db.load(TABLE_TO_TYPE[self.table], row_id = row_id)
+        element = self.db.load(TABLE_TO_TYPE[self.table], row_id=row_id)
         self.selected = element
         voh = ViewOutputHandler()
         title, content = voh.output(element.make_output())
@@ -643,10 +667,10 @@ class DialogTable(Window):
             if response == gtk.ResponseType.OK:
                 next_oid = self.services["next_oid"]
                 oid = next_oid(type_, negative)
-                operation = Operation(type_ = type_, oid = oid)
-                response = self.run_editor(DialogOperation,
-                                           self.db.save,
-                                           operation)
+                operation = Operation(type_=type_, oid=oid)
+                response = self.run_editor(
+                    DialogOperation, self.db.save, operation
+                )
         if response == gtk.ResponseType.OK:
             self.reload_search()
 
@@ -654,17 +678,20 @@ class DialogTable(Window):
     def edit(self, *args):
         if self.assert_selected():
             if self.table == TABLE_COMPANIES:
-                response = self.run_editor(DialogCompany, self.db.save,
-                                           self.selected)
+                response = self.run_editor(
+                    DialogCompany, self.db.save, self.selected
+                )
             elif self.table == TABLE_INVENTORY:
-                response = self.run_editor(DialogItem, self.db.save,
-                                           self.selected)
+                response = self.run_editor(
+                    DialogItem, self.db.save, self.selected
+                )
             elif self.table == TABLE_OPERATIONS:
                 try:
                     if self.selected.status == oks.TYPE_STATUS_COMPLETE:
                         raise oks.OperationEditError
-                    response = self.run_editor(DialogOperation, self.db.save,
-                                               self.selected)
+                    response = self.run_editor(
+                        DialogOperation, self.db.save, self.selected
+                    )
                 except oks.OperationEditError as exception:
                     self.show_message(exception.text, exception.secondaryText)
                     response = gtk.ResponseType.NONE
@@ -676,14 +703,16 @@ class DialogTable(Window):
     def remove(self, *args):
         if self.assert_selected():
             response = self.show_message(
-            "Remover elemento?",
-            "Após remover um elemento, ele não poderá ser restaurado.\n"\
-            "Note que remover uma operação não alterará o status dela.",
-            gtk.MessageType.QUESTION, gtk.ButtonsType.YES_NO)
+                "Remover elemento?",
+                "Após remover um elemento, ele não poderá ser restaurado.\n"
+                "Note que remover uma operação não alterará o status dela.",
+                gtk.MessageType.QUESTION,
+                gtk.ButtonsType.YES_NO,
+            )
             if response == gtk.ResponseType.YES:
                 type_ = self.selected.TYPE
                 row_id = self.selected.row_id
-                self.db.delete(type_, row_id = row_id)
+                self.db.delete(type_, row_id=row_id)
                 self.reload_search()
 
     # Support for operation status changes directly from the treeview
@@ -692,16 +721,20 @@ class DialogTable(Window):
         response = gtk.ResponseType.YES
         if settings("ENABLE_INVENTORY_CONTROL"):
             response = self.show_message(
-            "Alterar o status da operação?",
-            "Os itens da operação serão adicionados ou retirados do estoque.",
-            gtk.MessageType.QUESTION, gtk.ButtonsType.YES_NO)
+                "Alterar o status da operação?",
+                "Os itens da operação serão adicionados ou retirados do estoque.",
+                gtk.MessageType.QUESTION,
+                gtk.ButtonsType.YES_NO,
+            )
         if response == gtk.ResponseType.YES:
             row_id = self.get_row_id_from_path(path)
             try:
                 self.db.toggle_status(oks.OPERATION, row_id)
             except oks.OksException as exception:
-                message = "Os problemas abaixo precisam ser corrigidos para "\
-                "que o status da operação possa ser alterado:\n\n"
+                message = (
+                    "Os problemas abaixo precisam ser corrigidos para "
+                    "que o status da operação possa ser alterado:\n\n"
+                )
                 company = None
                 missing = []
                 unavailable = []
@@ -717,8 +750,9 @@ class DialogTable(Window):
                     elif req_type == 1 and quantity:
                         unavailable.append((description, quantity))
                 if company:
-                    message += "A empresa \"%s\" não está cadastrada.\n" %\
-                               company
+                    message += (
+                        'A empresa "%s" não está cadastrada.\n' % company
+                    )
                     message += "\n"
                 if missing:
                     message += "Os seguintes itens não estão cadastrados:\n"
@@ -726,16 +760,18 @@ class DialogTable(Window):
                         message += "• %s\n" % item
                     message += "\n"
                 if unavailable:
-                    message += "São necessárias as seguintes quantidades "\
-                    "adicionais:\n"
+                    message += (
+                        "São necessárias as seguintes quantidades "
+                        "adicionais:\n"
+                    )
                     for item, quantity in unavailable:
                         message += "• %s unidades de %s\n" % (
-                        core.utils.float_to_str(quantity, strip = True), item)
+                            core.utils.float_to_str(quantity, strip=True),
+                            item,
+                        )
                     message += "\n"
                 message = message.strip("\n")
-                self.show_message(
-                "Não é possível alterar o status",
-                message)
+                self.show_message("Não é possível alterar o status", message)
             else:
                 self.reload_search()
 
@@ -762,18 +798,21 @@ class DialogTable(Window):
             new_operation.date = datetime.date.today()
             if operation.type_ == oks.TYPE_PRODUCTION_OPERATION:
                 # Replace the indication of copy
-                new_operation.notes = re.sub("Baseada na operação de produção "\
-                                             "\d*",
-                                             "",
-                                             operation.notes)
-                new_operation.notes = ("Baseada na operação de produção %i %s" %
-                                      (operation.oid,
-                                       new_operation.notes)).strip()
+                new_operation.notes = re.sub(
+                    "Baseada na operação de produção " "\d*",
+                    "",
+                    operation.notes,
+                )
+                new_operation.notes = (
+                    "Baseada na operação de produção %i %s"
+                    % (operation.oid, new_operation.notes)
+                ).strip()
             else:
                 new_operation.notes = operation.notes
 
-            response = self.run_editor(DialogOperation, self.db.save,
-                                       new_operation)
+            response = self.run_editor(
+                DialogOperation, self.db.save, new_operation
+            )
             if response == gtk.ResponseType.OK:
                 self.reload_search()
 
@@ -783,29 +822,33 @@ class DialogTable(Window):
         if self.assert_selected():
             operation = self.selected
             if operation and operation.type_ == oks.TYPE_PRODUCTION_OPERATION:
-                new_operation = Operation(type_ = oks.TYPE_EXCHANGE_OPERATION)
+                new_operation = Operation(type_=oks.TYPE_EXCHANGE_OPERATION)
                 next_oid = self.services["next_oid"]
                 settings = self.services["settings"]
                 new_operation.oid = next_oid(new_operation.type_)
                 new_operation.company = settings("SELF_COMPANY")
-                new_operation.notes = "Acabamento da Operação de Produção %s "\
-                                      "para %s" % (operation.oid,
-                                                   operation.company)
-                for (iter_, rowObject) in operation.input:
+                new_operation.notes = (
+                    "Acabamento da Operação de Produção %s "
+                    "para %s" % (operation.oid, operation.company)
+                )
+                for iter_, rowObject in operation.input:
                     if rowObject.TYPE == oks.PRODUCTION_ITEM:
                         new_item = ExchangeItem()
                         new_item.name = rowObject.name
                         new_item.quantity = rowObject.quantity
                         new_operation.output.insert(new_item)
-                response = self.run_editor(DialogOperation, self.db.save,
-                                           new_operation)
+                response = self.run_editor(
+                    DialogOperation, self.db.save, new_operation
+                )
                 if response == gtk.ResponseType.OK:
                     self.reload_search()
 
             else:
-                self.show_message("Tipo inválido",
-                                  "Somente uma operação de producão pode ser "\
-                                  "mandada para acabamento")
+                self.show_message(
+                    "Tipo inválido",
+                    "Somente uma operação de producão pode ser "
+                    "mandada para acabamento",
+                )
 
     # Insert items that don't exist in the invetory but that are required by
     # the operation
@@ -822,22 +865,32 @@ class DialogTable(Window):
                     item = Item(name=description, quantity=0)
                     self.run_editor(DialogItem, self.db.save, item)
             if reqs == []:
-                self.show_message("Nada a cadastrar",
-                                  "A empresa e os itens necessários já estão "\
-                                  "cadastrados.", gtk.MESSAGE_INFO)
+                self.show_message(
+                    "Nada a cadastrar",
+                    "A empresa e os itens necessários já estão "
+                    "cadastrados.",
+                    gtk.MESSAGE_INFO,
+                )
             else:
-                self.show_message("Requisitos resolvidos",
-                                  "A empresa e os itens necessários foram "\
-                                  "cadastrados.", gtk.MESSAGE_INFO)
+                self.show_message(
+                    "Requisitos resolvidos",
+                    "A empresa e os itens necessários foram " "cadastrados.",
+                    gtk.MESSAGE_INFO,
+                )
 
     # Save the selected element in a text file
     def save_to_file(self, *args):
         filechooserdialog = gtk.FileChooserDialog(
-        None,
-        self.window,
-        gtk.FILE_CHOOSER_ACTION_SAVE,
-        (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
-        gtk.STOCK_SAVE, gtk.ResponseType.OK))
+            None,
+            self.window,
+            gtk.FILE_CHOOSER_ACTION_SAVE,
+            (
+                gtk.STOCK_CANCEL,
+                gtk.RESPONSE_CANCEL,
+                gtk.STOCK_SAVE,
+                gtk.ResponseType.OK,
+            ),
+        )
         filechooserdialog.set_do_overwrite_confirmation(True)
         # TODO: give this a nicer name
         filechooserdialog.set_current_name("Oks")
@@ -856,10 +909,12 @@ class DialogTable(Window):
             content = soh.output(self.selected.make_output())
             settings = self.services["settings"]
 
-            print_action = PrintAction(self.window,
-                                       content,
-                                       settings("PRINT_FONT_NAME"),
-                                       settings("PRINT_FONT_SIZE"))
+            print_action = PrintAction(
+                self.window,
+                content,
+                settings("PRINT_FONT_NAME"),
+                settings("PRINT_FONT_SIZE"),
+            )
             response = print_action.run()
 
     # Print a label for sending mail to a company
@@ -867,16 +922,21 @@ class DialogTable(Window):
         if self.assert_selected():
             company = self.selected
             sender_name = self.services["settings"]("SELF_COMPANY")
-            self_company = self.db.load(oks.COMPANY, name = sender_name)
+            self_company = self.db.load(oks.COMPANY, name=sender_name)
             if not self_company:
-                self.show_message("Remetente não encontrado", "A empresa "\
-                                  "configurada como remetente ({0}) não está "\
-                                  "cadastrada.".format(sender_name))
+                self.show_message(
+                    "Remetente não encontrado",
+                    "A empresa "
+                    "configurada como remetente ({0}) não está "
+                    "cadastrada.".format(sender_name),
+                )
                 return
             else:
                 self_company = self_company[0]
 
-            companies = [("Destinatário", company),]
+            companies = [
+                ("Destinatário", company),
+            ]
             if self_company:
                 companies.insert(0, ("Remetente", self_company))
 
@@ -884,8 +944,10 @@ class DialogTable(Window):
             for role, company in companies:
                 label += "%s:\n" % role
                 label += "    %s\n" % company.full_name
-                label += "    %s, %s\n" % (company.address,
-                                         company.neighborhood)
+                label += "    %s, %s\n" % (
+                    company.address,
+                    company.neighborhood,
+                )
                 label += "    %s, %s\n" % (company.city, company.state)
                 label += "    CEP: %s\n\n" % company.zip_code
 
@@ -939,19 +1001,26 @@ class DialogTable(Window):
             self.label_report_options.show()
         else:
             self.label_report_options.hide()
-        for (option, type_, label, value) in report.OPTIONS:
+        for option, type_, label, value in report.OPTIONS:
             self.table_report_options.resize(row + 1, 2)
             if type_ == oks.REPORT_OPTION_BOOL:
                 field = CheckButtonField(gtk.CheckButton(label), option)
                 field.set_value(report.get_option(option))
                 field.connect("new-value", self.on_report_options_updated)
 
-                self.table_report_options.attach(field.widget,
-                                                 0, 2,
-                                                 row, row + 1,
-                                                 gtk.EXPAND|gtk.FILL, gtk.FILL)
-            elif (type_ == oks.REPORT_OPTION_DATE or
-                  type_ == oks.REPORT_OPTION_TEXT):
+                self.table_report_options.attach(
+                    field.widget,
+                    0,
+                    2,
+                    row,
+                    row + 1,
+                    gtk.EXPAND | gtk.FILL,
+                    gtk.FILL,
+                )
+            elif (
+                type_ == oks.REPORT_OPTION_DATE
+                or type_ == oks.REPORT_OPTION_TEXT
+            ):
                 label = gtk.Label(label + ": ")
                 label.set_alignment(0.0, 0.5)
 
@@ -962,22 +1031,27 @@ class DialogTable(Window):
                 field.set_value(report.get_option(option))
                 field.connect("new-value", self.on_report_options_updated)
 
-                self.table_report_options.attach(label,
-                                                 0, 1,
-                                                 row, row + 1,
-                                                 gtk.FILL, gtk.FILL)
-                self.table_report_options.attach(field.widget,
-                                                 1, 2,
-                                                 row, row + 1,
-                                                 gtk.EXPAND|gtk.FILL, gtk.FILL)
+                self.table_report_options.attach(
+                    label, 0, 1, row, row + 1, gtk.FILL, gtk.FILL
+                )
+                self.table_report_options.attach(
+                    field.widget,
+                    1,
+                    2,
+                    row,
+                    row + 1,
+                    gtk.EXPAND | gtk.FILL,
+                    gtk.FILL,
+                )
 
             row += 1
             self.report_fields.append(field)
 
         # Same actions for all reports
         self.title.enable_actions(True)
-        self.title.set_actions(("_Imprimir", self.print_action),
-                               ("_Salvar", self.save_to_file))
+        self.title.set_actions(
+            ("_Imprimir", self.print_action), ("_Salvar", self.save_to_file)
+        )
 
         if report.OPTIONS != []:
             self.vbox_report_options_frame.show_all()
@@ -1002,7 +1076,8 @@ class DialogTable(Window):
         self.db_man.close_db()
         Window.close(self)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     current_path = sys.path[0]
     db_path = os.path.join(current_path, "db.sqlite")
     lock_path = os.path.join(current_path, "lock")
@@ -1012,13 +1087,16 @@ if __name__ == '__main__':
     locale.setlocale(locale.LC_ALL, "")
     if os.path.exists(lock_path):
         questionDialog = gtk.MessageDialog(
-        None,
-        0,
-        gtk.MessageType.QUESTION,
-        gtk.ButtonsType.OK_CANCEL,
-        "Iniciar o programa?")
-        questionDialog.format_secondary_text("Oks aparenta já estar aberta.\n"\
-        "Deseja iniciar o programa mesmo assim?\n")
+            None,
+            0,
+            gtk.MessageType.QUESTION,
+            gtk.ButtonsType.OK_CANCEL,
+            "Iniciar o programa?",
+        )
+        questionDialog.format_secondary_text(
+            "Oks aparenta já estar aberta.\n"
+            "Deseja iniciar o programa mesmo assim?\n"
+        )
         answer = questionDialog.run()
         questionDialog.hide()
         questionDialog.destroy()

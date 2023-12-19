@@ -1,9 +1,7 @@
-#!/usr/bin/env python
-#-*- coding:utf-8 -*-
-
 from core.output import *
 from core.db.row import Row
 import oks
+
 
 class Item(Row):
     TYPE = oks.ITEM
@@ -18,21 +16,22 @@ class Item(Row):
         self.row = ("name", "type_", "unit", "quantity", "price", "notes")
 
         Row.__init__(self, **kwargs)
-    
+
     def get_total_value(self):
         return self.quantity * self.price
-        
-    def make_output(self):        
+
+    def make_output(self):
         item = Section("item_{0}".format(self.name), self.name)
 
         type_ = StringData("type", "Tipo", oks.ITEM_TYPES_DESC[self.type_])
         item.add_child(type_)
-        
+
         unit = StringData("unit", "Unidade", oks.ITEM_UNITS_DESC[self.unit])
         item.add_child(unit)
 
-        quantity = FloatData("quantity", "Quantidade", self.quantity,
-                             strip_zeros=True)
+        quantity = FloatData(
+            "quantity", "Quantidade", self.quantity, strip_zeros=True
+        )
         item.add_child(quantity)
 
         value = CurrencyData("value", "Valor", self.price, "R$")

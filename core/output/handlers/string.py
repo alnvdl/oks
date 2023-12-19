@@ -1,11 +1,9 @@
-#!/usr/bin/env python
-#-*- coding:utf-8 -*-
-
 from core.output import *
 from core import utils
 
 # Constants and functions used by the table generator
 TABLE_SPACING = 3
+
 
 class OutputHandler:
     def __init__(self):
@@ -19,23 +17,29 @@ class OutputHandler:
 def format_String(data):
     return str(data.content)
 
+
 def format_Float(data, unit=True):
     value = utils.float_to_str(data.content, data.precision, data.strip_zeros)
     if data.unit is not None and unit:
         return "{0} {1}".format(value, data.unit)
     return value
 
+
 def format_Currency(data, unit=True):
     return utils.float_to_currency(data.content, unit)
+
 
 def format_Date(data):
     return utils.date_to_str(data.content)
 
-FORMAT = {StringData: format_String,
-          IntegerData: format_String,
-          FloatData: format_Float,
-          DateData: format_Date,
-          CurrencyData: format_Currency}
+
+FORMAT = {
+    StringData: format_String,
+    IntegerData: format_String,
+    FloatData: format_Float,
+    DateData: format_Date,
+    CurrencyData: format_Currency,
+}
 
 
 def table_to_string(table):
@@ -71,10 +75,10 @@ def table_to_string(table):
     data = [[col[n] for col in data] for n in range(len(data[0]))]
 
     # Writing the columns
-    if len(columns) > 1: # Degenerate into a list if there is only one column
+    if len(columns) > 1:  # Degenerate into a list if there is only one column
         for label, width in columns:
             string += label.ljust(width + TABLE_SPACING)
-        string += '\n'
+        string += "\n"
 
     # Writing the rows
     for row in data:
@@ -84,7 +88,7 @@ def table_to_string(table):
             formatted_row += row[n].ljust(width + TABLE_SPACING)
         string += formatted_row + "\n"
 
-    return string # .encode(table.ENCODING)
+    return string  # .encode(table.ENCODING)
 
 
 def _indent(string, level, ilen=4):
@@ -92,7 +96,7 @@ def _indent(string, level, ilen=4):
         return string
     i = 0
     for k in range(level):
-        i += ilen/(2**k)
+        i += ilen / (2**k)
     i = int(i) * " "
     return i + string.replace("\n", "\n" + i).rstrip(i)
 
@@ -105,9 +109,9 @@ class StringOutputHandler(OutputHandler):
         if isinstance(outputable, Section) and outputable.children:
             if outputable.title is not None:
                 string += _indent(outputable.title, level) + "\n"
-            if (parent is not None and
-                not (parent.__class__ is Section and
-                     parent.is_super_section())):
+            if parent is not None and not (
+                parent.__class__ is Section and parent.is_super_section()
+            ):
                 level += 1
         elif isinstance(outputable, Data):
             content = FORMAT[outputable.__class__](outputable)

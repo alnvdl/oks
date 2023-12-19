@@ -1,13 +1,11 @@
-#!/usr/bin/env python
-#-*- coding:utf-8 -*-
-
 import datetime
 import locale
 
+
 # Caching function
 def cache(function):
-    """ Simple decorator that caches by relating the arguments for a function
-    to its return value """
+    """Simple decorator that caches by relating the arguments for a function
+    to its return value"""
     cache = {}
 
     def decorating_function(*args, **kwargs):
@@ -31,15 +29,19 @@ def date_to_str(date, fmt=locale.nl_langinfo(locale.D_FMT)):
     return date.strftime(fmt)
 
 
+locale.setlocale(locale.LC_ALL, "")
 decimal_point = locale.localeconv()["decimal_point"]
-def float_to_str(n, digits = 2, strip = False):
+
+
+def float_to_str(n, digits=2, strip=False):
     value = locale.format("%.{0}f".format(digits), n)
     if strip:
-        return value.rstrip("0"*digits).rstrip(decimal_point)
+        return value.rstrip("0" * digits).rstrip(decimal_point)
     return value
 
 
 str_to_float = locale.atof
+
 
 def float_to_currency(value, unit=False):
     return locale.currency(value, unit)
@@ -49,4 +51,3 @@ def internal_date_to_str(date, ifmt, fmt=locale.nl_langinfo(locale.D_FMT)):
     if type(date) == str:
         date = datetime.datetime.strptime(date, ifmt)
     return date_to_str(datetime.date(date.year, date.month, date.day), fmt)
-

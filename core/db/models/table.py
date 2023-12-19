@@ -1,12 +1,8 @@
-#!/usr/bin/env python
-#-*- coding:utf-8 -*-
-
-import gi
-gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk as gtk
 
+
 class Table(gtk.ListStore):
-    def __init__(self, db, table, columns, reverse = False):
+    def __init__(self, db, table, columns, reverse=False):
         gtk.ListStore.__init__(self, *[column[1] for column in columns])
         self.db = db
         self.table = table
@@ -26,7 +22,7 @@ class Table(gtk.ListStore):
         i = 0
         for converter in self.column_types:
             nrow.append(converter(row[i]))
-            i +=1
+            i += 1
         return nrow
 
     def row_inserted(self, row):

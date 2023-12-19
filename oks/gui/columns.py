@@ -1,11 +1,9 @@
-#!/usr/bin/env python
-#-*- coding:utf-8 -*-
-
 from gi.repository import Gtk as gtk
 from gi.repository import Pango as pango
 
 import core.utils
 import oks
+
 
 class CheckButtonColumn(gtk.TreeViewColumn):
     def __init__(self, title, column, on_toggle=None):
@@ -27,13 +25,14 @@ class CheckButtonColumn(gtk.TreeViewColumn):
 
 
 class TextColumn(gtk.TreeViewColumn):
-    def __init__(self, title, column, sortable = False, ellipsize = False):
+    def __init__(self, title, column, sortable=False, ellipsize=False):
         self.title = title
         self.column = column
         self.sortable = sortable
         self.cellRenderer = gtk.CellRendererText()
-        gtk.TreeViewColumn.__init__(self, self.title, self.cellRenderer,
-                                    text = column)
+        gtk.TreeViewColumn.__init__(
+            self, self.title, self.cellRenderer, text=column
+        )
         if ellipsize:
             self.cellRenderer.set_property("ellipsize", pango.ELLIPSIZE_END)
             self.set_expand(True)
@@ -43,12 +42,12 @@ class TextColumn(gtk.TreeViewColumn):
 
 
 class IntegerColumn(TextColumn):
-    def __init__(self, title, column, sortable = False, ellipsize = False):
+    def __init__(self, title, column, sortable=False, ellipsize=False):
         TextColumn.__init__(self, title, column, sortable, ellipsize)
 
 
 class AdapatedColumn(gtk.TreeViewColumn):
-    def __init__(self, title, column, sortable = False, ellipsize = False):
+    def __init__(self, title, column, sortable=False, ellipsize=False):
         self.title = title
         self.column = column
         self.sortable = sortable
@@ -71,15 +70,15 @@ class AdapatedColumn(gtk.TreeViewColumn):
 
 
 class FloatColumn(AdapatedColumn):
-    def __init__(self, title, column, sortable = False, ellipsize = False):
+    def __init__(self, title, column, sortable=False, ellipsize=False):
         AdapatedColumn.__init__(self, title, column, sortable, ellipsize)
 
     def formatting_func(self, data):
-        return core.utils.float_to_str(float(data), strip = True)
+        return core.utils.float_to_str(float(data), strip=True)
 
 
 class DateColumn(AdapatedColumn):
-    def __init__(self, title, column, sortable = False, ellipsize = False):
+    def __init__(self, title, column, sortable=False, ellipsize=False):
         AdapatedColumn.__init__(self, title, column, sortable, ellipsize)
 
     def formatting_func(self, data):
@@ -87,7 +86,7 @@ class DateColumn(AdapatedColumn):
 
 
 class CurrencyColumn(AdapatedColumn):
-    def __init__(self, title, column, sortable = False, ellipsize = False):
+    def __init__(self, title, column, sortable=False, ellipsize=False):
         AdapatedColumn.__init__(self, title, column, sortable, ellipsize)
 
     def formatting_func(self, data):
@@ -95,8 +94,7 @@ class CurrencyColumn(AdapatedColumn):
 
 
 class TypeColumn(AdapatedColumn):
-    def __init__(self, title, column, types, sortable = False,
-                 ellipsize = False):
+    def __init__(self, title, column, types, sortable=False, ellipsize=False):
         AdapatedColumn.__init__(self, title, column, sortable, ellipsize)
         self.types = types
 

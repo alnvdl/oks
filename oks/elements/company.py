@@ -1,12 +1,11 @@
-#!/usr/bin/env python
-#-*- coding:utf-8 -*-
-
 from core.db.row import Row
 from core.output import *
 import oks
 
+
 class Company(Row):
     TYPE = oks.COMPANY
+
     def __init__(self, **kwargs):
         self.name = ""
         self.type_ = 0
@@ -22,12 +21,25 @@ class Company(Row):
         self.cnpj = ""
         self.ie = ""
         self.notes = ""
-        self.row = ("name", "type_", "full_name", "address", 
-                    "neighborhood", "city", "state", "zip_code", "phone", "fax", 
-                    "email", "cnpj", "ie", "notes")
+        self.row = (
+            "name",
+            "type_",
+            "full_name",
+            "address",
+            "neighborhood",
+            "city",
+            "state",
+            "zip_code",
+            "phone",
+            "fax",
+            "email",
+            "cnpj",
+            "ie",
+            "notes",
+        )
 
         Row.__init__(self, **kwargs)
-        
+
     def make_output(self):
         company = Section("company_{0}".format(self.name), self.name)
 
@@ -40,7 +52,7 @@ class Company(Row):
         full_address = (self.address + ", " + self.neighborhood).strip(", ")
         address = StringData("address", "Endereço", full_address)
         company.add_child(address)
-        
+
         zip_code = StringData("zip_code", "CEP", self.zip_code)
         company.add_child(zip_code)
 

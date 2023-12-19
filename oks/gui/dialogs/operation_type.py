@@ -1,36 +1,39 @@
-#!/usr/bin/env python
-#-*- coding:utf-8 -*-
-
 from gi.repository import Gtk as gtk
 from gi.repository import Gdk as gdk
 from oks.gui.dialog import Dialog
 
+
 class DialogSelectOperationType(Dialog):
     def __init__(self, builder, parent):
-        Dialog.__init__(self,
-                        builder,
-                        parent,
-                        "dialog_operation_type")
+        Dialog.__init__(self, builder, parent, "dialog_operation_type")
 
         self.load_widget("radiobuttonOut")
         self.radiobuttonOut.connect("activate", self.response)
-        self.radiobuttonOut.connect("button-press-event", self.negative_response)
+        self.radiobuttonOut.connect(
+            "button-press-event", self.negative_response
+        )
 
         self.load_widget("radiobuttonIn")
         self.radiobuttonIn.connect("activate", self.response)
-        self.radiobuttonIn.connect("button-press-event", self.negative_response)
+        self.radiobuttonIn.connect(
+            "button-press-event", self.negative_response
+        )
 
         self.load_widget("radiobuttonProduction")
         self.radiobuttonProduction.connect("activate", self.response)
-        self.radiobuttonProduction.connect("button-press-event", self.negative_response)
+        self.radiobuttonProduction.connect(
+            "button-press-event", self.negative_response
+        )
 
         self.load_widget("radiobuttonExchange")
         self.radiobuttonExchange.connect("activate", self.response)
-        self.radiobuttonExchange.connect("button-press-event", self.negative_response)
+        self.radiobuttonExchange.connect(
+            "button-press-event", self.negative_response
+        )
 
         self.negative = False
 
-    def run(self, date = None):
+    def run(self, date=None):
         response = self.dialog.run()
         operationType = 0
         if response == gtk.ResponseType.OK:

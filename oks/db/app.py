@@ -1,10 +1,6 @@
-#!/usr/bin/env python
-#-*- coding:utf-8 -*-
-
 import os.path
 import sqlite3
 import datetime
-import time
 
 from core.db.backends.sqlite import SQLiteBackend as Database
 from core.db.models.table import Table
@@ -33,14 +29,20 @@ TABLE_EXCHANGE_ITEMS = "ExchangeItems"
 TABLE_TRANSACTIONS_VIEW = "TransactionsView"
 TABLE_SETTINGS = "Settings"
 
-TYPE_MAPPING = [ (oks.COMPANY, Company, TABLE_COMPANIES),
-                 (oks.ITEM, Item, TABLE_INVENTORY),
-                 (oks.OPERATION, Operation, TABLE_OPERATIONS),
-                 (oks.PRODUCT, Product, TABLE_PRODUCTS),
-                 (oks.PRODUCTION_ITEM, ProductionItem, TABLE_PRODUCTION_ITEMS,),
-                 (oks.RAW_MATERIAL, RawMaterial, TABLE_RAW_MATERIALS),
-                 (oks.EXCHANGE_ITEM, ExchangeItem, TABLE_EXCHANGE_ITEMS),
-                 (oks.TRANSACTION, Transaction, TABLE_TRANSACTIONS) ]
+TYPE_MAPPING = [
+    (oks.COMPANY, Company, TABLE_COMPANIES),
+    (oks.ITEM, Item, TABLE_INVENTORY),
+    (oks.OPERATION, Operation, TABLE_OPERATIONS),
+    (oks.PRODUCT, Product, TABLE_PRODUCTS),
+    (
+        oks.PRODUCTION_ITEM,
+        ProductionItem,
+        TABLE_PRODUCTION_ITEMS,
+    ),
+    (oks.RAW_MATERIAL, RawMaterial, TABLE_RAW_MATERIALS),
+    (oks.EXCHANGE_ITEM, ExchangeItem, TABLE_EXCHANGE_ITEMS),
+    (oks.TRANSACTION, Transaction, TABLE_TRANSACTIONS),
+]
 TYPE_TO_CLASS, TYPE_TO_TABLE, TABLE_TO_TYPE = {}, {}, {}
 for type_, class_, table in TYPE_MAPPING:
     TYPE_TO_CLASS[type_] = class_
@@ -48,13 +50,19 @@ for type_, class_, table in TYPE_MAPPING:
     TABLE_TO_TYPE[table] = type_
 TABLE_TO_TYPE[TABLE_TRANSACTIONS_VIEW] = oks.TRANSACTION
 
-DATA_MODEL = { oks.COMPANY: {},
-               oks.ITEM: {},
-               oks.OPERATION: { oks.PRODUCT: {},
-                                oks.PRODUCTION_ITEM: {oks.RAW_MATERIAL: {}},
-                                oks.EXCHANGE_ITEM: {},
-                                oks.TRANSACTION: {} } }
-def get_supported_children(type_, level = DATA_MODEL):
+DATA_MODEL = {
+    oks.COMPANY: {},
+    oks.ITEM: {},
+    oks.OPERATION: {
+        oks.PRODUCT: {},
+        oks.PRODUCTION_ITEM: {oks.RAW_MATERIAL: {}},
+        oks.EXCHANGE_ITEM: {},
+        oks.TRANSACTION: {},
+    },
+}
+
+
+def get_supported_children(type_, level=DATA_MODEL):
     result = None
     for p in level:
         if type_ == p:
@@ -67,7 +75,7 @@ def get_supported_children(type_, level = DATA_MODEL):
 class AppDatabase(Database):
     VERSION = 6
 
-    def __init__(self, dbFile = None):
+    def __init__(self, dbFile=None):
         create = False
         if not os.path.exists(dbFile) or dbFile == ":memory:":
             create = True
@@ -83,11 +91,12 @@ class AppDatabase(Database):
         self.changes = {}
         self.connection.create_function("update_hook", 3, self.update_hook)
         self.models = {
-        TABLE_COMPANIES: None,
-        TABLE_INVENTORY: None,
-        TABLE_OPERATIONS: None,
-        TABLE_TRANSACTIONS: None,
-        TABLE_TRANSACTIONS_VIEW: None}
+            TABLE_COMPANIES: None,
+            TABLE_INVENTORY: None,
+            TABLE_OPERATIONS: None,
+            TABLE_TRANSACTIONS: None,
+            TABLE_TRANSACTIONS_VIEW: None,
+        }
         for table in list(self.models.keys()):
             self.models[table] = Table(self, table, self.tables[table], True)
 
@@ -96,7 +105,7 @@ class AppDatabase(Database):
             type_, default = value
 
             rows = self.get_rows(TABLE_SETTINGS, name=name)
-            if rows == []: # Setting not found, reset to default value
+            if rows == []:  # Setting not found, reset to default value
                 self.settings[name] = default
             else:
                 name, value = rows[0]
@@ -113,22 +122,31 @@ class AppDatabase(Database):
         # self.settings["SELF_COMPANY"] = ""
 
         completion = AutoCompletion()
-        completion.register("companies:name",
-                            self.models[TABLE_COMPANIES], 1)
-        completion.register("companies:city",
-                            self.models[TABLE_COMPANIES], 6, inline=True)
-        completion.register("companies:state",
-                            self.models[TABLE_COMPANIES], 7, inline=True)
-        completion.register("inventory:item",
-                            self.models[TABLE_INVENTORY], 1)
-        completion.register("inventory:production_item",
-                            self.models[TABLE_INVENTORY], 1,
-                            2, oks.TYPE_PRODUCTION_ITEM)
-        completion.register("inventory:raw_material",
-                            self.models[TABLE_INVENTORY], 1,
-                            2, oks.TYPE_RAW_MATERIAL)
-        completion.register("transactions:way",
-                            self.models[TABLE_TRANSACTIONS], 4, inline=True)
+        completion.register("companies:name", self.models[TABLE_COMPANIES], 1)
+        completion.register(
+            "companies:city", self.models[TABLE_COMPANIES], 6, inline=True
+        )
+        completion.register(
+            "companies:state", self.models[TABLE_COMPANIES], 7, inline=True
+        )
+        completion.register("inventory:item", self.models[TABLE_INVENTORY], 1)
+        completion.register(
+            "inventory:production_item",
+            self.models[TABLE_INVENTORY],
+            1,
+            2,
+            oks.TYPE_PRODUCTION_ITEM,
+        )
+        completion.register(
+            "inventory:raw_material",
+            self.models[TABLE_INVENTORY],
+            1,
+            2,
+            oks.TYPE_RAW_MATERIAL,
+        )
+        completion.register(
+            "transactions:way", self.models[TABLE_TRANSACTIONS], 4, inline=True
+        )
 
         # Services provided by this class to windows and dialogs.
         # A service should only query the database and never change it.
@@ -145,22 +163,25 @@ class AppDatabase(Database):
     def commit(self):
         Database.commit(self)
         callbacks = {
-        "INSERT": "row_inserted",
-        "UPDATE": "row_updated",
-        "DELETE": "row_deleted"}
+            "INSERT": "row_inserted",
+            "UPDATE": "row_updated",
+            "DELETE": "row_deleted",
+        }
 
         # Tell the tables what has changed in the commit
-        for ((table, row_id), change_type) in list(self.changes.items()):
+        for (table, row_id), change_type in list(self.changes.items()):
             row = self.get_row(table, row_id)
-            if row is None: # In case of DELETE
+            if row is None:  # In case of DELETE
                 row = row_id
             callback = getattr(self.models[table], callbacks[change_type])
             callback(row)
             # In case a Transactions row has changed, change TransactionsView
             if table == TABLE_TRANSACTIONS:
                 row = self.get_row(TABLE_TRANSACTIONS_VIEW, row_id)
-                getattr(self.models[TABLE_TRANSACTIONS_VIEW],
-                        callbacks[change_type])(row)
+                getattr(
+                    self.models[TABLE_TRANSACTIONS_VIEW],
+                    callbacks[change_type],
+                )(row)
 
         self.load_cache.clear()
         self.changes.clear()
@@ -178,7 +199,7 @@ class AppDatabase(Database):
         # TODO: if a DELETE change for a row has been marked, ignore others
         self.changes[(table, row_id)] = change_type
 
-    def load(self, element_type, list_ = False, **kwargs):
+    def load(self, element_type, list_=False, **kwargs):
         """
         Loads a set of rows from the database based on the given column
         values (kwargs) into a set of row objects of the given type.
@@ -188,7 +209,7 @@ class AppDatabase(Database):
         @element_type: the row object type
         @list_: if the function should always return a list
         @kwargs: column values to be loaded
-         """
+        """
         table = TYPE_TO_TABLE[element_type]
         class_ = TYPE_TO_CLASS[element_type]
         rows = self.get_rows(table, **kwargs)
@@ -199,7 +220,7 @@ class AppDatabase(Database):
             element.from_row(row)
             elements.append(element)
             for child_type in get_supported_children(element_type):
-                children = self.load(child_type, pid = element.row_id)
+                children = self.load(child_type, pid=element.row_id)
                 for child in children:
                     element.load_child(child)
         if "row_id" in kwargs and not list_:
@@ -216,9 +237,7 @@ class AppDatabase(Database):
         elements = []
         for row_id in row_ids:
             if row_id not in self.load_cache[table]:
-                loaded = self.load(element_type,
-                                   list_,
-                                   **kwargs)
+                loaded = self.load(element_type, list_, **kwargs)
                 if type(loaded) != list:
                     loaded = [loaded]
                 for new_element in loaded:
@@ -228,7 +247,7 @@ class AppDatabase(Database):
             return elements[0]
         return elements
 
-    def save(self, element, pid = None, commit=True):
+    def save(self, element, pid=None, commit=True):
         """
         Saves a row object into the datababse, if possible. If the row
         object has children, they are saved as well.
@@ -252,11 +271,11 @@ class AppDatabase(Database):
                 self.update(table, row_id, row)
             for name, container in list(element.children.items()):
                 for child in container.deleted:
-                    self.delete(child.TYPE, row_id = child.row_id, commit=False)
+                    self.delete(child.TYPE, row_id=child.row_id, commit=False)
                 for child in container.inserted:
-                    self.save(child, pid = element.row_id, commit=False)
+                    self.save(child, pid=element.row_id, commit=False)
                 for child in container.updated:
-                    self.save(child, pid = element.row_id, commit=False)
+                    self.save(child, pid=element.row_id, commit=False)
         except oks.OksException as exception:
             self.rollback()
             raise exception
@@ -277,16 +296,17 @@ class AppDatabase(Database):
         @kwargs: column values to be loaded
         """
         table = TYPE_TO_TABLE[type_]
-        elements = self.load(type_, list_ = True, **kwargs)
+        elements = self.load(type_, list_=True, **kwargs)
         for element in elements:
             for child_type in get_supported_children(type_):
-                children = self.delete(child_type, commit = False,
-                                       pid = element.row_id)
+                children = self.delete(
+                    child_type, commit=False, pid=element.row_id
+                )
         self.delete_rows(table, **kwargs)
         if commit:
             self.commit()
 
-    def toggle_status(self, type_, row_id, commit = True):
+    def toggle_status(self, type_, row_id, commit=True):
         """
         Toggles the status of a RowWithStatus object and that of their
         childen as well.
@@ -294,20 +314,25 @@ class AppDatabase(Database):
         @type_: the row object type
         @row_id: the row_id of the row to change the status
         """
-        element = self.load(type_, row_id = row_id)
+        element = self.load(type_, row_id=row_id)
         if not isinstance(element, RowWithStatus):
-            raise oks.OksException("the element doesn't have a status property")
+            raise oks.OksException(
+                "the element doesn't have a status property"
+            )
 
         try:
             element.toggle_status()
-            self.save(element, commit = False)
+            self.save(element, commit=False)
             self.apply_rules(element)
             for name, container in list(element.children.items()):
-                for (iter_, child) in container:
-                    if (isinstance(child, RowWithStatus) and
-                        child.CHANGE_STATUS_WITH_PARENT):
-                        self.toggle_status(child.TYPE, child.row_id,
-                                           commit = False)
+                for iter_, child in container:
+                    if (
+                        isinstance(child, RowWithStatus)
+                        and child.CHANGE_STATUS_WITH_PARENT
+                    ):
+                        self.toggle_status(
+                            child.TYPE, child.row_id, commit=False
+                        )
         except oks.OksException as exception:
             self.rollback()
             raise exception
@@ -324,25 +349,31 @@ class AppDatabase(Database):
 
         # If element is an OperationElement, check if it is valid and
         # change the quantities in the Inventory as needed
-        if element.TYPE in (oks.PRODUCT,
-                            oks.PRODUCTION_ITEM,
-                            oks.RAW_MATERIAL,
-                            oks.EXCHANGE_ITEM):
+        if element.TYPE in (
+            oks.PRODUCT,
+            oks.PRODUCTION_ITEM,
+            oks.RAW_MATERIAL,
+            oks.EXCHANGE_ITEM,
+        ):
             item = self.load(oks.ITEM, name=element.name)
 
             if not self.settings["ENABLE_INVENTORY_CONTROL"]:
-                types_ = {oks.PRODUCT: oks.TYPE_COMMON_ITEM,
-                          oks.PRODUCTION_ITEM: oks.TYPE_PRODUCTION_ITEM,
-                          oks.RAW_MATERIAL: oks.TYPE_RAW_MATERIAL,
-                          oks.EXCHANGE_ITEM: oks.TYPE_COMMON_ITEM}
+                types_ = {
+                    oks.PRODUCT: oks.TYPE_COMMON_ITEM,
+                    oks.PRODUCTION_ITEM: oks.TYPE_PRODUCTION_ITEM,
+                    oks.RAW_MATERIAL: oks.TYPE_RAW_MATERIAL,
+                    oks.EXCHANGE_ITEM: oks.TYPE_COMMON_ITEM,
+                }
 
-                if len(item) == 0: # If the item doesn't exist, create it
-                    new_item = Item(name=element.name,
-                                    quantity=0.0,
-                                    type_=types_[element.TYPE])
+                if len(item) == 0:  # If the item doesn't exist, create it
+                    new_item = Item(
+                        name=element.name,
+                        quantity=0.0,
+                        type_=types_[element.TYPE],
+                    )
                     if element.TYPE == oks.PRODUCT:
                         new_item.price = element.price
-                    self.save(new_item, commit = False)
+                    self.save(new_item, commit=False)
                 return
 
             if len(item) == 0:
@@ -352,23 +383,27 @@ class AppDatabase(Database):
             else:
                 item = item[0]
 
-            if (element.IO == oks.OUTPUT and
-                element.status == oks.TYPE_STATUS_COMPLETE or
-                element.IO == oks.INPUT and
-                element.status == oks.TYPE_STATUS_INCOMPLETE):
-                    item.quantity -= element.quantity
-            elif (element.IO == oks.OUTPUT and
-                  element.status == oks.TYPE_STATUS_INCOMPLETE or
-                  element.IO == oks.INPUT and
-                  element.status == oks.TYPE_STATUS_COMPLETE):
-                    item.quantity += element.quantity
+            if (
+                element.IO == oks.OUTPUT
+                and element.status == oks.TYPE_STATUS_COMPLETE
+                or element.IO == oks.INPUT
+                and element.status == oks.TYPE_STATUS_INCOMPLETE
+            ):
+                item.quantity -= element.quantity
+            elif (
+                element.IO == oks.OUTPUT
+                and element.status == oks.TYPE_STATUS_INCOMPLETE
+                or element.IO == oks.INPUT
+                and element.status == oks.TYPE_STATUS_COMPLETE
+            ):
+                item.quantity += element.quantity
             if item.quantity < 0:
                 raise oks.ItemQuantityError
-            self.save(item, commit = False)
+            self.save(item, commit=False)
         # If element is an Operation, check if the company is valid
         elif element.TYPE == oks.OPERATION:
             # FIXME: find a better way of checking
-            company = self.load(oks.COMPANY, name = element.company)
+            company = self.load(oks.COMPANY, name=element.company)
             if len(company) == 0:
                 raise oks.InvalidCompanyError
 
@@ -383,9 +418,10 @@ class AppDatabase(Database):
     # Services are functions provided by the database that give data to the
     # application, but never change the database itself. That is, they provide
     # read-only operations.
-    def get_next_oid(self, type_, negative = False):
-        (min_, max_) = self.get_min_and_max(TABLE_OPERATIONS, "oid",
-                                            type_ = type_)
+    def get_next_oid(self, type_, negative=False):
+        (min_, max_) = self.get_min_and_max(
+            TABLE_OPERATIONS, "oid", type_=type_
+        )
         if negative:
             if min_ is not None and min_ < 0:
                 return min_ - 1
@@ -408,11 +444,11 @@ class AppDatabase(Database):
     # it is None, it means that the item itself doesn't exist.
     def get_operation_reqs(self, operation_row_id):
         reqs = []
-        operation = self.load(oks.OPERATION, row_id = operation_row_id)
+        operation = self.load(oks.OPERATION, row_id=operation_row_id)
         newStatus = int(not operation.status)
 
         # Company
-        company = self.load(oks.COMPANY, name = operation.company)
+        company = self.load(oks.COMPANY, name=operation.company)
         if not company:
             reqs.append((0, operation.company, None))
 
@@ -423,9 +459,13 @@ class AppDatabase(Database):
         # Items
         def get_items_list(element, items):
             for name, container in list(element.children.items()):
-                for (iter_, child) in container:
-                    if child.TYPE in (oks.PRODUCT, oks.PRODUCTION_ITEM,
-                                      oks.RAW_MATERIAL, oks.EXCHANGE_ITEM):
+                for iter_, child in container:
+                    if child.TYPE in (
+                        oks.PRODUCT,
+                        oks.PRODUCTION_ITEM,
+                        oks.RAW_MATERIAL,
+                        oks.EXCHANGE_ITEM,
+                    ):
                         items.append((child.name, child.IO, child.quantity))
                         child_items = []
                         items.extend(get_items_list(child, child_items))
@@ -433,35 +473,41 @@ class AppDatabase(Database):
 
         items = []
         items = get_items_list(operation, items)
-        for (name, IO, quantity) in items:
-            inventoryItem = self.load(oks.ITEM, name = name)
+        for name, IO, quantity in items:
+            inventoryItem = self.load(oks.ITEM, name=name)
             if not inventoryItem:
                 reqs.append((1, name, None))
                 continue
-            if (inventoryItem and
-                inventoryItem[0].type_ == oks.TYPE_SERVICE):
+            if inventoryItem and inventoryItem[0].type_ == oks.TYPE_SERVICE:
                 continue
             else:
                 availableQuantity = inventoryItem[0].quantity
                 requiredQuantity = quantity
-                if (IO == 0 and newStatus == 1 and
-                    requiredQuantity > availableQuantity or
-                    IO == 1 and newStatus == 0 and
-                    requiredQuantity > availableQuantity):
-                    reqs.append((1, name, requiredQuantity -
-                    availableQuantity))
+                if (
+                    IO == 0
+                    and newStatus == 1
+                    and requiredQuantity > availableQuantity
+                    or IO == 1
+                    and newStatus == 0
+                    and requiredQuantity > availableQuantity
+                ):
+                    reqs.append(
+                        (1, name, requiredQuantity - availableQuantity)
+                    )
         return reqs
 
     def guess_formula(self, description, current_row_id=None):
         formula = []
         density = 2.0
         specification = ProductionItem.get_specification(description)
-        rows = self.get_rows_through_child_search(TABLE_OPERATIONS,
-                                                  TABLE_PRODUCTION_ITEMS,
-                                                  "name_production",
-                                                  "%%%s%%" % specification)
+        rows = self.get_rows_through_child_search(
+            TABLE_OPERATIONS,
+            TABLE_PRODUCTION_ITEMS,
+            "name_production",
+            "%%%s%%" % specification,
+        )
         # Sort operations by date
-        rows.sort(key = lambda x: x[4])
+        rows.sort(key=lambda x: x[4])
         while rows != [] and formula == []:
             # Get the row id of the most recent operation (by date)
             row_id = rows.pop()[0]
@@ -472,22 +518,29 @@ class AppDatabase(Database):
                 if current_row_id == item.row_id:
                     continue
                 # If there's a match use the formula
-                if (ProductionItem.get_specification(item.name_production) ==
-                    specification):
+                if (
+                    ProductionItem.get_specification(item.name_production)
+                    == specification
+                ):
                     density = item.density
-                    for iter_, component, in item.formula:
+                    for (
+                        iter_,
+                        component,
+                    ) in item.formula:
                         formula.append((component.name, component.proportion))
                     break
         return (density, formula)
 
     def guess_measurements(self, description, current_row_id=None):
         measurements = ProductionItem.get_measurements(description)
-        rows = self.get_rows_through_child_search(TABLE_OPERATIONS,
-                                                  TABLE_PRODUCTION_ITEMS,
-                                                  "name",
-                                                  "%%%s%%" % measurements)
+        rows = self.get_rows_through_child_search(
+            TABLE_OPERATIONS,
+            TABLE_PRODUCTION_ITEMS,
+            "name",
+            "%%%s%%" % measurements,
+        )
         # Sort operations by date
-        rows.sort(key = lambda x: x[4])
+        rows.sort(key=lambda x: x[4])
         while rows != []:
             # Get the row id of the most recent operation (by date)
             row_id = rows.pop()[0]
@@ -498,19 +551,23 @@ class AppDatabase(Database):
                 if current_row_id == item.row_id:
                     continue
                 # If there's a match use the name_production measurements
-                if (ProductionItem.get_measurements(item.name) ==
-                    measurements):
-                    return ProductionItem.get_measurements(item.name_production)
+                if ProductionItem.get_measurements(item.name) == measurements:
+                    return ProductionItem.get_measurements(
+                        item.name_production
+                    )
         return None
 
     # Queries. There is a different query for each one of the main tables.
     # Their results are limited for performance reasons.
     def limit(limit):
-        """ Limits the output of a function that returns a list """
+        """Limits the output of a function that returns a list"""
+
         def decorator(function):
             def wrapper(*args):
                 return function(*args)[:limit]
+
             return wrapper
+
         return decorator
 
     @limit(256)
@@ -550,29 +607,34 @@ class AppDatabase(Database):
         date = search_dict["date"]
         del search_dict["date"]
 
-        matches = self.query(TABLE_OPERATIONS, reverse = True,
-                                      **search_dict)
+        matches = self.query(TABLE_OPERATIONS, reverse=True, **search_dict)
 
         if date:
-            timedelta = datetime.timedelta(days = 7)
-            date_matches = set(self.get_rows_in_range(TABLE_OPERATIONS,
-                                                      "date",
-                                                      date - timedelta,
-                                                      date + timedelta,
-                                                      select = "row_id"))
+            timedelta = datetime.timedelta(days=7)
+            date_matches = set(
+                self.get_rows_in_range(
+                    TABLE_OPERATIONS,
+                    "date",
+                    date - timedelta,
+                    date + timedelta,
+                    select="row_id",
+                )
+            )
             matches = set(matches)
             matches = list(matches.intersection(date_matches))
 
         items_tables = (
-        TABLE_PRODUCTS,
-        TABLE_PRODUCTION_ITEMS,
-        TABLE_EXCHANGE_ITEMS)
+            TABLE_PRODUCTS,
+            TABLE_PRODUCTION_ITEMS,
+            TABLE_EXCHANGE_ITEMS,
+        )
 
         if item:
             items_matches = []
             for table in items_tables:
-                items_matches.extend(self.query(table, "pid", True,
-                                                **items_dict))
+                items_matches.extend(
+                    self.query(table, "pid", True, **items_dict)
+                )
             matches = set(matches)
             items_matches = set(items_matches)
             return list(matches.intersection(items_matches))
@@ -599,12 +661,16 @@ class AppDatabase(Database):
         matches = self.query(TABLE_TRANSACTIONS_VIEW, **search_dict)
 
         if date:
-            timedelta = datetime.timedelta(days = 7)
-            date_matches = set(self.get_rows_in_range(TABLE_TRANSACTIONS,
-                                                      "ddate",
-                                                      date - timedelta,
-                                                      date + timedelta,
-                                                      select = "row_id"))
+            timedelta = datetime.timedelta(days=7)
+            date_matches = set(
+                self.get_rows_in_range(
+                    TABLE_TRANSACTIONS,
+                    "ddate",
+                    date - timedelta,
+                    date + timedelta,
+                    select="row_id",
+                )
+            )
             matches = set(matches)
             matches = list(matches.intersection(date_matches))
 

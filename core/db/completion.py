@@ -1,7 +1,3 @@
-#!/usr/bin/env python
-#-*- coding:utf-8 -*-
-
-
 from gi.repository import Gtk as gtk
 
 
@@ -9,18 +5,30 @@ class AutoCompletion:
     def __init__(self):
         self.completions = {}
 
-    def register(self, name, model, col,
-                 filter_col = None, filter_value = None, inline = False):
+    def register(
+        self,
+        name,
+        model,
+        col,
+        filter_col=None,
+        filter_value=None,
+        inline=False,
+    ):
         self.completions[name] = (model, col, filter_col, filter_value, inline)
 
     def get(self, name):
         model, col, filter_col, filter_value, inline = self.completions[name]
 
         if filter_col and filter_value:
+
             def match_func(completion, key, iter_):
-                return (key.lower() in model[iter_][col].lower() and
-                        model[iter_][filter_col] == filter_value)
+                return (
+                    key.lower() in model[iter_][col].lower()
+                    and model[iter_][filter_col] == filter_value
+                )
+
         else:
+
             def match_func(completion, key, iter_):
                 return key.lower() in model[iter_][col].lower()
 

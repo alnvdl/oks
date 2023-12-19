@@ -1,22 +1,24 @@
-#!/usr/bin/env python
-#-*- coding:utf-8 -*-
-
-import datetime
-
 from gi.repository import Gtk as gtk
 from gi.repository import GObject as gobject
 from gi.repository import Pango as pango
 
+
 class Field(gobject.GObject):
-    """ A Field object provides a wrapper around a gtk.Widget so that some
-    convinence methods can be defined """
+    """A Field object provides a wrapper around a gtk.Widget so that some
+    convinence methods can be defined"""
+
     __gsignals__ = {
-    "new-value": (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,))
+        "new-value": (
+            gobject.SIGNAL_RUN_LAST,
+            gobject.TYPE_NONE,
+            (gobject.TYPE_PYOBJECT,),
+        )
     }
-    def __init__(self, widget, attribute = None):
+
+    def __init__(self, widget, attribute=None):
         gobject.GObject.__init__(self)
-        self.widget = widget # Read-only
-        self.attribute = attribute # Read-only
+        self.widget = widget  # Read-only
+        self.attribute = attribute  # Read-only
         self.defaultValue = None
 
     def get_widget(self):
@@ -54,7 +56,7 @@ class Field(gobject.GObject):
 
 
 class LabelField(Field):
-    def __init__(self, widget, attribute = None):
+    def __init__(self, widget, attribute=None):
         Field.__init__(self, widget, attribute)
 
     def get_value(self):
@@ -65,7 +67,7 @@ class LabelField(Field):
 
 
 class EntryField(Field):
-    def __init__(self, widget, attribute = None):
+    def __init__(self, widget, attribute=None):
         Field.__init__(self, widget, attribute)
         self.widget.connect("changed", self.emit_new_value)
         self.set_defaultValue("")
@@ -81,7 +83,7 @@ class EntryField(Field):
 
 
 class DelayedEntryField(Field):
-    def __init__(self, widget, attribute = None):
+    def __init__(self, widget, attribute=None):
         Field.__init__(self, widget, attribute)
         self.timeout = 0
         self.widget.connect("changed", self.delayed_emit_new_value)
@@ -103,7 +105,7 @@ class DelayedEntryField(Field):
 
 
 class SpinButtonField(Field):
-    def __init__(self, widget, attribute = None):
+    def __init__(self, widget, attribute=None):
         Field.__init__(self, widget, attribute)
         self.widget.connect("value-changed", self.emit_new_value)
         self.set_defaultValue(0)
@@ -118,11 +120,10 @@ class SpinButtonField(Field):
 
 
 class CheckButtonField(Field):
-    def __init__(self, widget, attribute = None):
+    def __init__(self, widget, attribute=None):
         Field.__init__(self, widget, attribute)
         self.widget.connect("toggled", self.emit_new_value)
         self.set_defaultValue(False)
-
 
     def get_value(self):
         return self.widget.get_active()
@@ -132,7 +133,7 @@ class CheckButtonField(Field):
 
 
 class ComboBoxField(Field):
-    def __init__(self, widget, attribute = None, *args):
+    def __init__(self, widget, attribute=None, *args):
         Field.__init__(self, widget, attribute)
         self.handler_id = self.widget.connect("changed", self.emit_new_value)
         if not args:
@@ -168,8 +169,9 @@ class ComboBoxField(Field):
             return list(self.model[active])
         return None
 
+
 class TextViewField(Field):
-    def __init__(self, widget, attribute = None):
+    def __init__(self, widget, attribute=None):
         Field.__init__(self, widget, attribute)
 
     def get_value(self):
@@ -186,7 +188,7 @@ class TextViewField(Field):
 
 
 class TreeViewField(Field):
-    def __init__(self, widget, attribute = None):
+    def __init__(self, widget, attribute=None):
         Field.__init__(self, widget, attribute)
         self.model = self.get_value()
 
@@ -198,5 +200,5 @@ class TreeViewField(Field):
         return self.widget.set_model(value)
 
     def get_model(self):
-        """ An alias for get_value in a TreeView Field """
+        """An alias for get_value in a TreeView Field"""
         return self.get_value()

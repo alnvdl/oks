@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-#-*- coding:utf-8 -*-
-
 # Version 6
 database_6 = """
 CREATE TABLE Companies
@@ -55,7 +52,7 @@ price REAL,
 notes TEXT,
 status INTEGER
 );
- 
+
 CREATE TABLE ProductionItems
 (
 row_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -123,7 +120,7 @@ CREATE TEMPORARY VIEW TransactionsView AS SELECT
     way,
     value,
     Transactions.status AS status,
-    Transactions.notes AS notes 
+    Transactions.notes AS notes
 FROM
     Transactions, Operations
 WHERE
@@ -151,18 +148,18 @@ CREATE TEMPORARY TRIGGER UpdateInventoryName AFTER UPDATE OF name ON Inventory
         UPDATE RawMaterials SET name = NEW.name WHERE name == OLD.name;
         UPDATE ExchangeItems SET name = NEW.name WHERE name == OLD.name;
     END;
-    
+
 /*
 Update status on TransactionsView (updates Transactions)
 */
-CREATE TEMPORARY TRIGGER ChangeTransactionStatus INSTEAD OF UPDATE OF status ON 
+CREATE TEMPORARY TRIGGER ChangeTransactionStatus INSTEAD OF UPDATE OF status ON
 TransactionsView
     FOR EACH ROW WHEN NEW.status != OLD.status
     BEGIN
-        UPDATE Transactions SET status = NEW.status 
+        UPDATE Transactions SET status = NEW.status
         WHERE Transactions.row_id = NEW.row_id;
     END;
-    
+
 /*
 Cascade update of company on Operations
 This trigger doesn't perform anything, it just sends an update signal to the
@@ -176,7 +173,7 @@ CREATE TEMPORARY TRIGGER UpdateCompany AFTER UPDATE OF company ON Operations
 
 
 /*
-The following triggers are a nasty way to solve the lack of the update_hook 
+The following triggers are a nasty way to solve the lack of the update_hook
 function in the Python implementation of SQLite
 */
 CREATE TEMPORARY TRIGGER InsertCompanies AFTER INSERT ON Companies
@@ -190,7 +187,7 @@ CREATE TEMPORARY TRIGGER UpdateCompanies AFTER UPDATE ON Companies
     BEGIN
         SELECT update_hook("Companies", "UPDATE", NEW.row_id);
     END;
-    
+
 CREATE TEMPORARY TRIGGER DeleteCompanies AFTER DELETE ON Companies
     FOR EACH ROW
     BEGIN
@@ -209,7 +206,7 @@ CREATE TEMPORARY TRIGGER UpdateInventory AFTER UPDATE ON Inventory
     BEGIN
         SELECT update_hook("Inventory", "UPDATE", NEW.row_id);
     END;
-    
+
 CREATE TEMPORARY TRIGGER DeleteInventory AFTER DELETE ON Inventory
     FOR EACH ROW
     BEGIN
@@ -228,7 +225,7 @@ CREATE TEMPORARY TRIGGER UpdateOperations AFTER UPDATE ON Operations
     BEGIN
         SELECT update_hook("Operations", "UPDATE", NEW.row_id);
     END;
-    
+
 CREATE TEMPORARY TRIGGER DeleteOperations AFTER DELETE ON Operations
     FOR EACH ROW
     BEGIN
@@ -247,11 +244,11 @@ CREATE TEMPORARY TRIGGER UpdateTransactions AFTER UPDATE ON Transactions
     BEGIN
         SELECT update_hook("Transactions", "UPDATE", NEW.row_id);
     END;
-    
+
 CREATE TEMPORARY TRIGGER DeleteTransactions AFTER DELETE ON Transactions
     FOR EACH ROW
     BEGIN
         SELECT update_hook("Transactions", "DELETE", OLD.row_id);
     END;
-    
+
 """

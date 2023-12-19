@@ -1,10 +1,3 @@
-#!/usr/bin/env python
-#-*- coding:utf-8 -*-
-
-from gi import pygtkcompat
-pygtkcompat.enable()
-pygtkcompat.enable_gtk(version="3.0")
-
 from gi.repository import Gtk as gtk
 from gi.repository import Gdk as gdk
 from gi.repository import Pango as pango
@@ -32,6 +25,9 @@ class Title(gtk.EventBox):
         self.show_all()
 
     def set_label(self, text):
+        if text == "":
+            self.label.hide()
+        self.label.show()
         self.label.set_text(text)
 
     def enable_actions(self, flag):
@@ -47,7 +43,7 @@ class Title(gtk.EventBox):
 class ButtonMenu(gtk.ToggleButton):
     def __init__(self, parent_window, label, *actions_list):
         gtk.ToggleButton.__init__(self)
-        self.set_relief(gtk.ReliefStyle.NONE)
+        self.set_relief(gtk.RELIEF_NONE)
         self.set_property("can_focus", False)
 
         self.parent_window = parent_window
@@ -71,10 +67,6 @@ class ButtonMenu(gtk.ToggleButton):
         self.connect("button-press-event", self.on_button_press_event)
         self.connect("activate", self.on_button_press_event)
 
-    def set_color(self, color):
-        self.label.modify_fg(gtk.STATE_NORMAL, color)
-        self.arrow.modify_fg(gtk.STATE_NORMAL, color)
-
     def on_selection_done(self, widget):
         self.set_active(False)
 
@@ -83,16 +75,9 @@ class ButtonMenu(gtk.ToggleButton):
         self.show_all()
         if event is not None:
             self.set_active(True)
-            self.menu.popup(None, None, self.get_menu_position, None,
-                            event.button, event.time)
-        else:
-            # FIXME: is is healthy to pass 0 for button and activate_time?
-            self.menu.popup(None, None, self.get_menu_position, None, 0, 0)
-
-    def get_menu_position(self, menu, x, y, data):
-        button_x, button_y = self.translate_coordinates(self.parent_window,
-                                                        0, 0)
-        return (button_x, button_y + self.get_allocated_height(), True)
+            self.menu.popup_at_widget(
+                self, gdk.GRAVITY_SOUTH_WEST, gdk.GRAVITY_NORTH_WEST, event
+            )
 
 
 class ActionsMenu(gtk.Menu):
@@ -101,7 +86,7 @@ class ActionsMenu(gtk.Menu):
 
     def set_actions(self, *actions_list):
         self.clear()
-        for (label, function) in actions_list:
+        for label, function in actions_list:
             menuitem = gtk.MenuItem(label, True)
             menuitem.set_use_underline(True)
             menuitem.connect("activate", function)

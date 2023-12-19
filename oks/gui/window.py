@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#-*- coding:utf-8 -*-
+# -*- coding:utf-8 -*-
 
 from gi.repository import Gtk as gtk
 
@@ -7,13 +7,14 @@ import core.db
 import oks.gui.fields as Fields
 import oks
 
+
 class Window:
     def __init__(self, builder, window, *fields):
         self.builder = builder
         self.window = self.builder.get_object(window)
         self.window.connect("destroy", self.close)
         self.fields = {}
-        for (widget_name, attribute) in fields:
+        for widget_name, attribute in fields:
             widget = self.get_widget(widget_name)
             if widget is None:
                 raise oks.InvalidWidgetName(widget_name)
@@ -60,31 +61,30 @@ class Window:
             try:
                 editor.save_to_content(content)
                 action(content, *args)
-                response = gtk.ResponseType.NONE # end the loop
+                response = gtk.ResponseType.NONE  # end the loop
             except oks.OksException as exception:
                 self.show_message(exception.text, exception.secondaryText)
                 response = editor.run()
-        if response == gtk.ResponseType.NONE: # if the loop was ended succesfully
+        if response == gtk.ResponseType.NONE:
+            # if the loop was ended succesfully
             response = gtk.ResponseType.OK
         return response
 
-    def show_message(self,
-                     text,
-                     secondaryText,
-                     messageType = gtk.MessageType.ERROR,
-                     buttons = gtk.ButtonsType.OK):
+    def show_message(
+        self,
+        text,
+        secondaryText,
+        messageType=gtk.MessageType.ERROR,
+        buttons=gtk.ButtonsType.OK,
+    ):
         dialogMessage = gtk.MessageDialog(
-        self.window,
-        0,
-        messageType,
-        buttons,
-        text)
+            self.window, 0, messageType, buttons, text
+        )
         dialogMessage.format_secondary_text(secondaryText)
         response = dialogMessage.run()
         dialogMessage.hide()
         dialogMessage.destroy()
         return response
 
-
-    def set_size(self, width= - 1, height = -1):
+    def set_size(self, width=-1, height=-1):
         self.window.set_size_request(width, height)
