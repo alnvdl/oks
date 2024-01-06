@@ -951,7 +951,13 @@ class DialogTable(Window):
                 label += "    %s, %s\n" % (company.city, company.state)
                 label += "    CEP: %s\n\n" % company.zip_code
 
-            print_action = PrintAction(label)
+            settings = self.services["settings"]
+            print_action = PrintAction(
+                self.window,
+                label,
+                settings("PRINT_FONT_NAME"),
+                settings("PRINT_FONT_SIZE"),
+            )
             print_action.run()
 
     #
