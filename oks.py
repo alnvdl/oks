@@ -51,7 +51,6 @@ from oks.gui.searchbox import SearchBox
 class DialogTable(Window):
     AUTO_UPDATE_SEARCH = True
     SORT = True
-    PANED_POSITION = 500
 
     def __init__(self, gladeFile, styleFile, db_path):
         # Initiating the dialog
@@ -71,12 +70,6 @@ class DialogTable(Window):
         Window.__init__(self, builder, "main")
         self.window.set_default_size(1280, 700)
         self.window.maximize()
-        # After we maximize, hpaned resizes. By listening to this event, we can
-        # revert that. Hacky, but it works...
-        self.window.connect(
-            "leave-notify-event",
-            lambda *args: self.hpaned.set_position(self.PANED_POSITION),
-        )
 
         # Loading some required widgets
         self.load_widget("hpaned")
@@ -109,6 +102,7 @@ class DialogTable(Window):
         self.vbox_right.reorder_child(self.title, 0)
 
         self.hpaned.pack2(self.vbox_right, True, False)
+        self.hpaned.set_position(500)
 
         # Report selection area
         self.combobox_report_type = ComboBoxField(
@@ -474,7 +468,6 @@ class DialogTable(Window):
             if report is not None:
                 self.combobox_report_type.set_value(report)
 
-            self.hpaned.set_position(self.PANED_POSITION)
             return
 
         # Window title
@@ -553,7 +546,6 @@ class DialogTable(Window):
 
         self.search_box.grab_focus()
         self.f_model.refilter()  # Refilter, so that the sorting works fine
-        self.hpaned.set_position(self.PANED_POSITION)
 
     def on_radioaction_show_changed(self, widget, current):
         tables = [
@@ -730,7 +722,7 @@ class DialogTable(Window):
             row_id = self.get_row_id_from_path(path)
             try:
                 self.db.toggle_status(oks.OPERATION, row_id)
-            except oks.OksException as exception:
+            except oks.OksException:
                 message = (
                     "Os problemas abaixo precisam ser corrigidos para "
                     "que o status da operação possa ser alterado:\n\n"
@@ -915,7 +907,7 @@ class DialogTable(Window):
                 settings("PRINT_FONT_NAME"),
                 settings("PRINT_FONT_SIZE"),
             )
-            response = print_action.run()
+            print_action.run()
 
     # Print a label for sending mail to a company
     def print_label(self, *args):
