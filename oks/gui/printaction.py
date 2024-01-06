@@ -15,21 +15,21 @@ class PrintAction:
         wrap=False,
     ):
         self.parent = parent
-        self.content = "\n" * 11 + content  # Dirty offset for the logo
-        self.layout = None
+        self.content = content
         self.font_name = font_name
         self.font_size = font_size
         self.wrap = wrap
-        self._linesppage = 0
-        self._current_line = 0
+
+        self.layout = None
+        self.linesppage = 0
+        self.lineheight = self.font_size / 2
+        self.current_line = 0
 
         self.operation = gtk.PrintOperation()
         self.operation.set_unit(gtk.UNIT_MM)
 
-        # Setting paper size as A4
-        paper_size = gtk.PaperSize(gtk.PAPER_NAME_A4)
         setup = gtk.PageSetup()
-        setup.set_paper_size(paper_size)
+        setup.set_paper_size(gtk.PaperSize(gtk.PAPER_NAME_A4))
         self.operation.set_default_page_setup(setup)
 
         self.operation.connect("begin_print", self.begin_print)
@@ -39,7 +39,15 @@ class PrintAction:
         return self.operation.run(action, self.parent)
 
     def begin_print(self, operation, context):
-        # Try setting the default parameters...
+        self.header = cairo.ImageSurface.create_from_png("gui/header.png")
+        self.header_scale = float(context.get_width()) / float(
+            self.header.get_width()
+        )
+        header_offset = math.ceil(
+            (self.header.get_height() * self.header_scale) / self.lineheight
+        )
+        self.content = "\n" * header_offset + self.content
+
         self.layout = context.create_pango_layout()
         font = pango.FontDescription(
             "%s %i" % (self.font_name, self.font_size)
@@ -47,54 +55,48 @@ class PrintAction:
         self.layout.set_font_description(font)
         self.layout.set_text(self.content, -1)
 
-        # And then enable wrap or dynamic resizing if needed...
+        # Enable wrapping or dynamic resizing as needed.
         if self.wrap:
             self.layout.set_width(int(context.get_width() * pango.SCALE))
         else:
             ink, logical = self.layout.get_pixel_extents()
-            ax, ay, width, by = (
-                logical.x,
-                logical.y,
-                logical.width,
-                logical.height,
-            )
-            if width > context.get_width():
-                self.font_size = (self.font_size * context.get_width()) / width
+            if logical.width > context.get_width():
+                self.font_size = (
+                    self.font_size * context.get_width()
+                ) / logical.width
                 font = pango.FontDescription(
                     "%s %i" % (self.font_name, self.font_size)
                 )
                 self.layout.set_font_description(font)
 
         nlines = self.layout.get_line_count()
-        self._linesppage = int(context.get_height() / (self.font_size / 2))
-        pages = int(math.ceil(nlines / float(self._linesppage)))
+        self.linesppage = int(context.get_height() / self.lineheight)
+        pages = int(math.ceil(nlines / float(self.linesppage)))
         operation.set_n_pages(pages)
 
     def draw_page(self, operation, context, page_number):
         cairo_context = context.get_cairo_context()
 
-        # Draw the logo
+        # Draw the header.
         if page_number == 0:
-            surface = cairo.ImageSurface.create_from_png("gui/header.png")
-            scale = float(context.get_width()) / float(surface.get_width())
             cairo_context.save()
             cairo_context.translate(0, 0)  # Top left
-            cairo_context.scale(scale, scale)
-            cairo_context.set_source_surface(surface)
+            cairo_context.scale(self.header_scale, self.header_scale)
+            cairo_context.set_source_surface(self.header)
             cairo_context.paint()
             cairo_context.restore()
 
-        # Draw the content
+        # Draw the content.
         cairo_context.set_source_rgb(0, 0, 0)
 
-        last_line = (page_number + 1) * self._linesppage
+        last_line = (page_number + 1) * self.linesppage
         # In case we are at the last page...
         if page_number == operation.get_property("n_pages") - 1:
             last_line = self.layout.get_line_count()
 
         cairo_context.move_to(0, 0)
-        while self._current_line < last_line:
-            line = self.layout.get_line(self._current_line)
-            cairo_context.rel_move_to(0, self.font_size / 2)
+        while self.current_line < last_line:
+            line = self.layout.get_line(self.current_line)
+            cairo_context.rel_move_to(0, self.lineheight)
             pango_cairo.show_layout_line(cairo_context, line)
-            self._current_line += 1
+            self.current_line += 1
